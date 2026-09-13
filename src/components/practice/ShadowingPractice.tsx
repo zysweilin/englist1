@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import type { PronunciationResult, ShadowingItem } from "@/lib/types";
+import { annotationFromWords } from "@/lib/annotations";
 import { useTTS } from "@/hooks/useTTS";
 import { useRecorder } from "@/hooks/useRecorder";
-import { SentenceDisplay } from "./SentenceDisplay";
+import { IpaGuide } from "./IpaGuide";
 import { RecordControls } from "./RecordControls";
 import { FeedbackPanel } from "./FeedbackPanel";
 
@@ -21,6 +22,11 @@ export function ShadowingPractice({ item, prevId, nextId }: Props) {
   const [result, setResult] = useState<PronunciationResult | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+
+  const annotation = useMemo(
+    () => annotationFromWords(item.text, item.gloss, item.words),
+    [item.text, item.gloss, item.words],
+  );
 
   const onPlayTTS = () => {
     if (speaking) stop();
@@ -71,13 +77,17 @@ export function ShadowingPractice({ item, prevId, nextId }: Props) {
           ← 返回首页
         </Link>
         <div className="flex items-center gap-2 text-xs text-zinc-500">
-          <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1">{item.level}</span>
-          <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1">跟读</span>
+          <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1">
+            {item.level}
+          </span>
+          <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1">
+            跟读
+          </span>
         </div>
       </header>
 
       <div className="min-h-[220px] rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm md:p-10">
-        <SentenceDisplay text={item.text} gloss={item.gloss} words={item.words} large />
+        <IpaGuide annotation={annotation} />
       </div>
 
       <RecordControls
@@ -98,7 +108,13 @@ export function ShadowingPractice({ item, prevId, nextId }: Props) {
         <audio controls src={recorder.url} className="w-full opacity-80" />
       )}
 
-      {result && <FeedbackPanel result={result} audioUrl={recorder.url} referenceText={item.text} />}
+      {result && (
+        <FeedbackPanel
+          result={result}
+          audioUrl={recorder.url}
+          referenceText={item.text}
+        />
+      )}
 
       <nav className="flex items-center justify-between border-t border-zinc-200 pt-6 text-sm">
         {prevId ? (

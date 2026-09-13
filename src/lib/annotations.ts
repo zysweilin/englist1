@@ -1,4 +1,4 @@
-import type { PhonemeFeedback, PronunciationResult } from "./types";
+import type { PhonemeFeedback, PronunciationResult, WordUnit } from "./types";
 
 /** Token kinds for the IPA guide line. */
 export type IpaTokenKind = "content" | "weak" | "other";
@@ -143,4 +143,41 @@ export function mockProsodyCurves(wordCount: number): {
     learner.push(0.38 + 0.06 * Math.sin(t * Math.PI * 0.9) + 0.08 * peak2 * 0.35);
   }
   return { native, learner, labels: [] };
+}
+
+
+const WEAK_WORDS = new Set([
+  "a",
+  "an",
+  "the",
+  "to",
+  "of",
+  "you",
+  "is",
+  "are",
+  "am",
+  "and",
+  "for",
+  "in",
+  "on",
+  "at",
+]);
+
+/** Build an IPA guide annotation from curriculum word units. */
+export function annotationFromWords(
+  text: string,
+  gloss: string,
+  words: WordUnit[],
+): SentenceAnnotation {
+  return {
+    text,
+    gloss,
+    tokens: words.map((w) => {
+      const bare = w.word.replace(/[.,!?']$/g, "").toLowerCase();
+      return {
+        text: w.ipa,
+        kind: (WEAK_WORDS.has(bare) ? "weak" : "content") as IpaTokenKind,
+      };
+    }),
+  };
 }

@@ -36,7 +36,7 @@ export function RecordControls({
   onRecordToggle,
   onAnalyze,
   onReset,
-  analyzeLabel = "评分",
+  analyzeLabel = "看纠正",
 }: Props) {
   return (
     <div className="space-y-4">
@@ -44,29 +44,29 @@ export function RecordControls({
         <button
           type="button"
           onClick={onPlayTTS}
-          className="rounded-full border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-zinc-200 transition hover:border-zinc-500 hover:bg-zinc-800"
+          className="rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-800 transition hover:border-zinc-300 hover:bg-zinc-100"
         >
-          {ttsSpeaking ? "停止 ▶" : "播放示范 ▶"}
+          {ttsSpeaking ? "停止 ▶" : "▶ 听示范"}
         </button>
 
         <button
           type="button"
           onClick={onRecordToggle}
           disabled={analyzing}
-          className={`rounded-full px-5 py-2 text-sm font-medium transition ${
+          className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
             recording
               ? "bg-rose-500 text-white hover:bg-rose-400"
-              : "bg-white text-black hover:bg-zinc-200"
+              : "bg-zinc-900 text-white hover:bg-zinc-800"
           } disabled:opacity-50`}
         >
-          {recording ? "停止录音 ■" : "开始录音 ●"}
+          {recording ? "停止录音 ■" : "● 开始录音"}
         </button>
 
         <button
           type="button"
           onClick={onAnalyze}
           disabled={!ready || analyzing || recording}
-          className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-300 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+          className="rounded-full border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-800 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {analyzing ? "分析中…" : analyzeLabel}
         </button>
@@ -74,7 +74,7 @@ export function RecordControls({
         <button
           type="button"
           onClick={onReset}
-          className="rounded-full border border-zinc-800 px-3 py-2 text-sm text-zinc-500 hover:text-zinc-300"
+          className="rounded-full border border-zinc-200 px-3 py-2 text-sm text-zinc-500 hover:text-zinc-800"
         >
           重录
         </button>
@@ -87,10 +87,13 @@ export function RecordControls({
         </div>
       </div>
       {error && (
-        <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-300">
+        <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
           {error}
         </p>
       )}
+      <p className="text-xs text-zinc-500">
+        流程：听示范 → 录音 → 停止 → 点「看纠正」查看音素与韵律反馈。
+      </p>
     </div>
   );
 }

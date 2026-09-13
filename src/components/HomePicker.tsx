@@ -9,34 +9,41 @@ export function HomePicker() {
   const router = useRouter();
   const [level, setLevel] = useState<Level | null>(null);
   const [mode, setMode] = useState<Mode | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const enterPractice = (nextLevel: Level, nextMode: Mode) => {
     const items =
       nextMode === "shadowing"
         ? listShadowing(nextLevel)
         : listDialogues(nextLevel);
-    if (items.length === 0) return;
-    router.push(`/practice?level=${nextLevel}&mode=${nextMode}`);
+    if (items.length === 0) {
+      setError(
+        nextMode === "dialogue"
+          ? "该级别暂无对话，试试 L2 或切换到跟读。"
+          : "该级别暂无跟读句，试试其他级别。",
+      );
+      return;
+    }
+    setError(null);
+    const first = items[0];
+    if (nextMode === "shadowing") {
+      router.push(`/shadowing/${first.id}`);
+    } else {
+      router.push(`/dialogue/${first.id}`);
+    }
   };
 
   const onSelectLevel = (id: Level) => {
     setLevel(id);
+    setError(null);
     if (mode) enterPractice(id, mode);
   };
 
   const onSelectMode = (id: Mode) => {
     setMode(id);
+    setError(null);
     if (level) enterPractice(level, id);
   };
-
-  const emptyHint =
-    level && mode
-      ? mode === "dialogue" && listDialogues(level).length === 0
-        ? "该级别暂无对话，试试 L2 或切换到跟读。"
-        : mode === "shadowing" && listShadowing(level).length === 0
-          ? "该级别暂无跟读句，试试其他级别。"
-          : null
-      : null;
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-4 py-14">
@@ -104,9 +111,12 @@ export function HomePicker() {
         </div>
       </section>
 
-      {emptyHint && (
-        <p className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
-          {emptyHint}
+      {error && (
+        <p
+          role="alert"
+          className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+        >
+          {error}
         </p>
       )}
 
