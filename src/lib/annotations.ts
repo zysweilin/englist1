@@ -23,9 +23,9 @@ export const APPLE_ANNOTATION: SentenceAnnotation = {
   gloss: "我想吃一个苹果。",
   tokens: [
     { text: "aɪ", kind: "content" },
-    { text: "ˈwɒnt", kind: "content" },
+    { text: "ˈwɑnt", kind: "content" },
     { text: "tə", kind: "weak" },
-    { text: "ˈiːt", kind: "content" },
+    { text: "ˈit", kind: "content" },
     { text: "ən", kind: "weak", linkAfter: true },
     { text: "ˈæpəl", kind: "content" },
   ],
@@ -36,7 +36,7 @@ export const THANK_YOU_ANNOTATION: SentenceAnnotation = {
   text: "Thank you very much.",
   gloss: "非常感谢。",
   tokens: [
-    { text: "ˈθæŋk", kind: "content" },
+    { text: "θæŋk", kind: "content" },
     { text: "ju", kind: "weak" },
     { text: "ˈvɛri", kind: "content" },
     { text: "mʌtʃ", kind: "content" },
@@ -161,9 +161,14 @@ const WEAK_WORDS = new Set([
   "in",
   "on",
   "at",
+  "can",
+  "from",
 ]);
 
-/** Build an IPA guide annotation from curriculum word units. */
+/**
+ * Build an IPA guide annotation from curriculum word units.
+ * word.ipa is the source of truth — do not invent or rewrite stress marks.
+ */
 export function annotationFromWords(
   text: string,
   gloss: string,
@@ -173,7 +178,7 @@ export function annotationFromWords(
     text,
     gloss,
     tokens: words.map((w) => {
-      const bare = w.word.replace(/[.,!?']$/g, "").toLowerCase();
+      const bare = w.word.replace(/[.,!?;:]+$/g, "").toLowerCase();
       return {
         text: w.ipa,
         kind: (WEAK_WORDS.has(bare) ? "weak" : "content") as IpaTokenKind,

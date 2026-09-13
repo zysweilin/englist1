@@ -1,5 +1,18 @@
 import type { DialogueItem, Level, Mode, ShadowingItem } from "./types";
 
+/** IPA writing standard for this curriculum
+ * Accent: General American (GA)
+ * Symbol set: Cambridge Dictionary US IPA (US often omits length ː on i/ɑ/ɔ/u)
+ * Primary stress ˈ on multi-syllable content words, before the stressed syllable
+ * Monosyllables: no stress mark
+ * Function words in phrasal context: prefer weak forms when natural
+ *   (to→tə, a→ə, of→əv, are→ər, can→kən, you→ju, the→ðə/ði)
+ * Phoneme arrays MUST match the ipa string (same symbols; digraphs as one:
+ *   tʃ dʒ aɪ eɪ oʊ aʊ ɔɪ; stressed rhotic ɝ as one unit)
+ * Use r not ɹ; use ɡ (IPA g) for /g/
+ * Do NOT mix British-only symbols (ɒ, bare ɜː without r-coloring)
+ */
+
 export const LEVELS: { id: Level; label: string; labelZh: string; hint: string }[] = [
   { id: "L1", label: "Starter", labelZh: "入门", hint: "短句跟读，建立口腔肌肉记忆" },
   { id: "L2", label: "Dialogue", labelZh: "对话", hint: "多轮情景，练习应答节奏" },
@@ -20,7 +33,7 @@ export const SHADOWING: ShadowingItem[] = [
     words: [
       { word: "Hello,", ipa: "həˈloʊ", phonemes: ["h", "ə", "l", "oʊ"] },
       { word: "how", ipa: "haʊ", phonemes: ["h", "aʊ"] },
-      { word: "are", ipa: "ɑr", phonemes: ["ɑ", "r"] },
+      { word: "are", ipa: "ər", phonemes: ["ə", "r"] },
       { word: "you", ipa: "ju", phonemes: ["j", "u"] },
       { word: "today?", ipa: "təˈdeɪ", phonemes: ["t", "ə", "d", "eɪ"] },
     ],
@@ -32,7 +45,7 @@ export const SHADOWING: ShadowingItem[] = [
     gloss: "很高兴认识你。",
     words: [
       { word: "Nice", ipa: "naɪs", phonemes: ["n", "aɪ", "s"] },
-      { word: "to", ipa: "tu", phonemes: ["t", "u"] },
+      { word: "to", ipa: "tə", phonemes: ["t", "ə"] },
       { word: "meet", ipa: "mit", phonemes: ["m", "i", "t"] },
       { word: "you.", ipa: "ju", phonemes: ["j", "u"] },
     ],
@@ -45,7 +58,7 @@ export const SHADOWING: ShadowingItem[] = [
     words: [
       { word: "What", ipa: "wʌt", phonemes: ["w", "ʌ", "t"] },
       { word: "is", ipa: "ɪz", phonemes: ["ɪ", "z"] },
-      { word: "your", ipa: "jɔr", phonemes: ["j", "ɔ", "r"] },
+      { word: "your", ipa: "jʊr", phonemes: ["j", "ʊ", "r"] },
       { word: "name?", ipa: "neɪm", phonemes: ["n", "eɪ", "m"] },
     ],
   },
@@ -57,7 +70,7 @@ export const SHADOWING: ShadowingItem[] = [
     words: [
       { word: "I", ipa: "aɪ", phonemes: ["aɪ"] },
       { word: "am", ipa: "æm", phonemes: ["æ", "m"] },
-      { word: "from", ipa: "frʌm", phonemes: ["f", "r", "ʌ", "m"] },
+      { word: "from", ipa: "frəm", phonemes: ["f", "r", "ə", "m"] },
       { word: "China.", ipa: "ˈtʃaɪnə", phonemes: ["tʃ", "aɪ", "n", "ə"] },
     ],
   },
@@ -90,7 +103,7 @@ export const SHADOWING: ShadowingItem[] = [
     text: "Can you help me, please?",
     gloss: "你能帮我一下吗？",
     words: [
-      { word: "Can", ipa: "kæn", phonemes: ["k", "æ", "n"] },
+      { word: "Can", ipa: "kən", phonemes: ["k", "ə", "n"] },
       { word: "you", ipa: "ju", phonemes: ["j", "u"] },
       { word: "help", ipa: "hɛlp", phonemes: ["h", "ɛ", "l", "p"] },
       { word: "me,", ipa: "mi", phonemes: ["m", "i"] },
@@ -144,7 +157,7 @@ export const SHADOWING: ShadowingItem[] = [
       { word: "a", ipa: "ə", phonemes: ["ə"] },
       { word: "cup", ipa: "kʌp", phonemes: ["k", "ʌ", "p"] },
       { word: "of", ipa: "əv", phonemes: ["ə", "v"] },
-      { word: "coffee,", ipa: "ˈkɔfi", phonemes: ["k", "ɔ", "f", "i"] },
+      { word: "coffee,", ipa: "ˈkɑfi", phonemes: ["k", "ɑ", "f", "i"] },
       { word: "please.", ipa: "pliz", phonemes: ["p", "l", "i", "z"] },
     ],
   },
@@ -231,7 +244,7 @@ export const SHADOWING: ShadowingItem[] = [
     gloss: "我真的很喜欢读乡村历史。",
     words: [
       { word: "I", ipa: "aɪ", phonemes: ["aɪ"] },
-      { word: "really", ipa: "ˈrɪli", phonemes: ["r", "ɪ", "l", "i"] },
+      { word: "really", ipa: "ˈrɪəli", phonemes: ["r", "ɪ", "ə", "l", "i"] },
       { word: "enjoy", ipa: "ɪnˈdʒɔɪ", phonemes: ["ɪ", "n", "dʒ", "ɔɪ"] },
       { word: "reading", ipa: "ˈridɪŋ", phonemes: ["r", "i", "d", "ɪ", "ŋ"] },
       { word: "about", ipa: "əˈbaʊt", phonemes: ["ə", "b", "aʊ", "t"] },
@@ -261,8 +274,8 @@ export const SHADOWING: ShadowingItem[] = [
     gloss: "这个星期四，三万根羽毛飞了起来。",
     words: [
       { word: "This", ipa: "ðɪs", phonemes: ["ð", "ɪ", "s"] },
-      { word: "Thursday,", ipa: "ˈθɜrzdeɪ", phonemes: ["θ", "ɜr", "z", "d", "eɪ"] },
-      { word: "thirty", ipa: "ˈθɜrti", phonemes: ["θ", "ɜr", "t", "i"] },
+      { word: "Thursday,", ipa: "ˈθɝzdeɪ", phonemes: ["θ", "ɝ", "z", "d", "eɪ"] },
+      { word: "thirty", ipa: "ˈθɝti", phonemes: ["θ", "ɝ", "t", "i"] },
       { word: "thousand", ipa: "ˈθaʊzənd", phonemes: ["θ", "aʊ", "z", "ə", "n", "d"] },
       { word: "feathers", ipa: "ˈfɛðərz", phonemes: ["f", "ɛ", "ð", "ə", "r", "z"] },
       { word: "flew.", ipa: "flu", phonemes: ["f", "l", "u"] },
@@ -303,7 +316,7 @@ export const DIALOGUES: DialogueItem[] = [
           { word: "Hello!", ipa: "həˈloʊ", phonemes: ["h", "ə", "l", "oʊ"] },
           { word: "What", ipa: "wʌt", phonemes: ["w", "ʌ", "t"] },
           { word: "is", ipa: "ɪz", phonemes: ["ɪ", "z"] },
-          { word: "your", ipa: "jɔr", phonemes: ["j", "ɔ", "r"] },
+          { word: "your", ipa: "jʊr", phonemes: ["j", "ʊ", "r"] },
           { word: "name?", ipa: "neɪm", phonemes: ["n", "eɪ", "m"] },
         ],
       },
@@ -318,7 +331,7 @@ export const DIALOGUES: DialogueItem[] = [
           { word: "is", ipa: "ɪz", phonemes: ["ɪ", "z"] },
           { word: "Wei.", ipa: "weɪ", phonemes: ["w", "eɪ"] },
           { word: "Nice", ipa: "naɪs", phonemes: ["n", "aɪ", "s"] },
-          { word: "to", ipa: "tu", phonemes: ["t", "u"] },
+          { word: "to", ipa: "tə", phonemes: ["t", "ə"] },
           { word: "meet", ipa: "mit", phonemes: ["m", "i", "t"] },
           { word: "you.", ipa: "ju", phonemes: ["j", "u"] },
         ],
@@ -330,7 +343,7 @@ export const DIALOGUES: DialogueItem[] = [
         gloss: "我也很高兴认识你。",
         words: [
           { word: "Nice", ipa: "naɪs", phonemes: ["n", "aɪ", "s"] },
-          { word: "to", ipa: "tu", phonemes: ["t", "u"] },
+          { word: "to", ipa: "tə", phonemes: ["t", "ə"] },
           { word: "meet", ipa: "mit", phonemes: ["m", "i", "t"] },
           { word: "you", ipa: "ju", phonemes: ["j", "u"] },
           { word: "too.", ipa: "tu", phonemes: ["t", "u"] },
@@ -371,7 +384,7 @@ export const DIALOGUES: DialogueItem[] = [
           { word: "a", ipa: "ə", phonemes: ["ə"] },
           { word: "cup", ipa: "kʌp", phonemes: ["k", "ʌ", "p"] },
           { word: "of", ipa: "əv", phonemes: ["ə", "v"] },
-          { word: "coffee,", ipa: "ˈkɔfi", phonemes: ["k", "ɔ", "f", "i"] },
+          { word: "coffee,", ipa: "ˈkɑfi", phonemes: ["k", "ɑ", "f", "i"] },
           { word: "please.", ipa: "pliz", phonemes: ["p", "l", "i", "z"] },
         ],
       },
@@ -415,7 +428,7 @@ export const DIALOGUES: DialogueItem[] = [
         gloss: "嘿！好久不见。你最近怎么样？",
         words: [
           { word: "Hey!", ipa: "heɪ", phonemes: ["h", "eɪ"] },
-          { word: "Long", ipa: "lɔŋ", phonemes: ["l", "ɔ", "ŋ"] },
+          { word: "Long", ipa: "lɑŋ", phonemes: ["l", "ɑ", "ŋ"] },
           { word: "time", ipa: "taɪm", phonemes: ["t", "aɪ", "m"] },
           { word: "no", ipa: "noʊ", phonemes: ["n", "oʊ"] },
           { word: "see.", ipa: "si", phonemes: ["s", "i"] },
@@ -486,9 +499,9 @@ export const DIALOGUES: DialogueItem[] = [
         words: [
           { word: "Excuse", ipa: "ɪkˈskjuz", phonemes: ["ɪ", "k", "s", "k", "j", "u", "z"] },
           { word: "me,", ipa: "mi", phonemes: ["m", "i"] },
-          { word: "are", ipa: "ɑr", phonemes: ["ɑ", "r"] },
+          { word: "are", ipa: "ər", phonemes: ["ə", "r"] },
           { word: "you", ipa: "ju", phonemes: ["j", "u"] },
-          { word: "lost?", ipa: "lɔst", phonemes: ["l", "ɔ", "s", "t"] },
+          { word: "lost?", ipa: "lɑst", phonemes: ["l", "ɑ", "s", "t"] },
         ],
       },
       {
@@ -514,8 +527,8 @@ export const DIALOGUES: DialogueItem[] = [
         words: [
           { word: "Go", ipa: "ɡoʊ", phonemes: ["ɡ", "oʊ"] },
           { word: "straight", ipa: "streɪt", phonemes: ["s", "t", "r", "eɪ", "t"] },
-          { word: "and", ipa: "ænd", phonemes: ["æ", "n", "d"] },
-          { word: "turn", ipa: "tɜrn", phonemes: ["t", "ɜr", "n"] },
+          { word: "and", ipa: "ən", phonemes: ["ə", "n"] },
+          { word: "turn", ipa: "tɝn", phonemes: ["t", "ɝ", "n"] },
           { word: "left", ipa: "lɛft", phonemes: ["l", "ɛ", "f", "t"] },
           { word: "at", ipa: "æt", phonemes: ["æ", "t"] },
           { word: "the", ipa: "ðə", phonemes: ["ð", "ə"] },
@@ -560,7 +573,7 @@ export const DIALOGUES: DialogueItem[] = [
           { word: "the", ipa: "ðə", phonemes: ["ð", "ə"] },
           { word: "theory", ipa: "ˈθɪri", phonemes: ["θ", "ɪ", "r", "i"] },
           { word: "before", ipa: "bɪˈfɔr", phonemes: ["b", "ɪ", "f", "ɔ", "r"] },
-          { word: "Thursday.", ipa: "ˈθɜrzdeɪ", phonemes: ["θ", "ɜr", "z", "d", "eɪ"] },
+          { word: "Thursday.", ipa: "ˈθɝzdeɪ", phonemes: ["θ", "ɝ", "z", "d", "eɪ"] },
         ],
       },
       {

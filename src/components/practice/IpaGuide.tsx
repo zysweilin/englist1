@@ -14,6 +14,34 @@ const kindClass: Record<string, string> = {
   other: "text-zinc-500",
 };
 
+/** Render IPA token with stress marks colored but same font size as letters. */
+function renderIpa(text: string) {
+  const parts: { t: string; stress: boolean }[] = [];
+  let buf = "";
+  for (const ch of text) {
+    if (ch === "ˈ" || ch === "ˌ") {
+      if (buf) {
+        parts.push({ t: buf, stress: false });
+        buf = "";
+      }
+      parts.push({ t: ch, stress: true });
+    } else {
+      buf += ch;
+    }
+  }
+  if (buf) parts.push({ t: buf, stress: false });
+
+  return parts.map((p, i) =>
+    p.stress ? (
+      <span key={i} className="text-amber-600">
+        {p.t}
+      </span>
+    ) : (
+      <span key={i}>{p.t}</span>
+    ),
+  );
+}
+
 export function IpaGuide({ annotation, showLegend = true }: Props) {
   return (
     <div className="space-y-4">
@@ -25,8 +53,9 @@ export function IpaGuide({ annotation, showLegend = true }: Props) {
       )}
 
       <div className="overflow-x-auto">
-        <div className="inline-flex min-w-full items-end gap-1 font-mono text-lg font-semibold md:text-xl">
-          <span className="pb-3 text-zinc-400">/</span>
+        {/* All IPA tokens share one font size; stress ˈ/ˌ are not enlarged */}
+        <div className="inline-flex min-w-full items-center gap-1 font-mono text-lg font-semibold leading-none md:text-xl">
+          <span className="text-zinc-400">/</span>
           {annotation.tokens.map((tok, i) => (
             <span key={`${tok.text}-${i}`} className="relative inline-flex flex-col items-center px-1">
               {/* Linking arc to next token */}
@@ -47,19 +76,12 @@ export function IpaGuide({ annotation, showLegend = true }: Props) {
                   />
                 </svg>
               )}
-              <span className={`pb-3 leading-none ${kindClass[tok.kind] ?? kindClass.other}`}>
-                {tok.text.includes("ˈ") ? (
-                  <>
-                    <span className="text-amber-600">ˈ</span>
-                    {tok.text.replace("ˈ", "")}
-                  </>
-                ) : (
-                  tok.text
-                )}
+              <span className={`py-1 ${kindClass[tok.kind] ?? kindClass.other}`}>
+                {renderIpa(tok.text)}
               </span>
             </span>
           ))}
-          <span className="pb-3 text-zinc-400">/</span>
+          <span className="text-zinc-400">/</span>
         </div>
       </div>
 
