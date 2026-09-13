@@ -8,11 +8,12 @@ type Props = {
 };
 
 /**
- * IPA line: one font, one size. Words separated by spaces only.
- * Format: / həˈloʊ haʊ ər ju təˈdeɪ /
+ * IPA line: one font, one size. Each word in its own /…/.
+ * Format: /həˈloʊ/ /haʊ/ /ər/ /ju/ /təˈdeɪ/
  */
 export function IpaGuide({ annotation, showLegend = true }: Props) {
-  const ipaLine = annotation.tokens.map((t) => t.text).join(" ");
+  /** Per-word IPA: /həˈloʊ/ /haʊ/ /ər/ … */
+  const ipaLine = annotation.tokens.map((t) => `/${t.text}/`).join(" ");
 
   return (
     <div className="space-y-4">
@@ -30,18 +31,16 @@ export function IpaGuide({ annotation, showLegend = true }: Props) {
           fontSize: "1.125rem",
           fontWeight: 500,
           lineHeight: 1.75,
-          letterSpacing: "0.06em",
+          letterSpacing: "0.04em",
           fontVariantLigatures: "none",
         }}
       >
-        <span className="text-zinc-400">/</span>
-        <span className="px-1.5">{ipaLine}</span>
-        <span className="text-zinc-400">/</span>
+        {ipaLine}
       </p>
 
       {showLegend && (
         <p className="text-[11px] text-zinc-500">
-          音标为美式 IPA；词与词之间用空格分开；ˈ 表示重音。
+          音标为美式 IPA；每个词单独用 /…/，词与词之间空格分开；ˈ 表示重音。
         </p>
       )}
     </div>
