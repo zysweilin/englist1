@@ -67,16 +67,16 @@ export function ShadowingPractice({ item, prevId, nextId }: Props) {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 py-10">
       <header className="flex items-center justify-between gap-4">
-        <Link href="/" className="text-sm text-zinc-500 transition hover:text-zinc-300">
+        <Link href="/" className="text-sm text-zinc-500 transition hover:text-zinc-800">
           ← 返回首页
         </Link>
         <div className="flex items-center gap-2 text-xs text-zinc-500">
-          <span className="rounded-full border border-zinc-800 px-2.5 py-1">{item.level}</span>
-          <span className="rounded-full border border-zinc-800 px-2.5 py-1">跟读</span>
+          <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1">{item.level}</span>
+          <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1">跟读</span>
         </div>
       </header>
 
-      <div className="min-h-[220px] rounded-3xl border border-zinc-800/80 bg-gradient-to-b from-zinc-950 to-black p-8 md:p-10">
+      <div className="min-h-[220px] rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm md:p-10">
         <SentenceDisplay text={item.text} gloss={item.gloss} words={item.words} large />
       </div>
 
@@ -98,18 +98,18 @@ export function ShadowingPractice({ item, prevId, nextId }: Props) {
         <audio controls src={recorder.url} className="w-full opacity-80" />
       )}
 
-      {result && <FeedbackPanel result={result} audioUrl={recorder.url} />}
+      {result && <FeedbackPanel result={result} audioUrl={recorder.url} referenceText={item.text} />}
 
-      <nav className="flex items-center justify-between border-t border-zinc-900 pt-6 text-sm">
+      <nav className="flex items-center justify-between border-t border-zinc-200 pt-6 text-sm">
         {prevId ? (
-          <Link href={`/shadowing/${prevId}`} className="text-zinc-400 hover:text-zinc-200">
+          <Link href={`/shadowing/${prevId}`} className="text-zinc-500 hover:text-zinc-800">
             ← 上一句
           </Link>
         ) : (
           <span />
         )}
         {nextId ? (
-          <Link href={`/shadowing/${nextId}`} className="text-zinc-400 hover:text-zinc-200">
+          <Link href={`/shadowing/${nextId}`} className="text-zinc-500 hover:text-zinc-800">
             下一句 →
           </Link>
         ) : (

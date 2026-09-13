@@ -166,7 +166,7 @@ export function DialoguePractice({ item, prevId, nextId }: Props) {
                   <SentenceDisplay text={turn.text} gloss={turn.gloss} words={turn.words} />
                   {st.result && (
                     <div className="mt-4">
-                      <FeedbackPanel result={st.result} audioUrl={st.audioUrl ?? null} />
+                      <FeedbackPanel result={st.result} audioUrl={st.audioUrl ?? null} referenceText={turn.text} />
                     </div>
                   )}
                 </>

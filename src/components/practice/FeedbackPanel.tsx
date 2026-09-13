@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef } from "react";
 import type { PronunciationResult } from "@/lib/types";
 import {
   oneLineReason,
   pickWorstCorrections,
 } from "@/lib/annotations";
-import { scoreColor, scoreLabel } from "@/lib/scoreColor";
-import { PhonemePills } from "./PhonemePills";
+import { scoreColor } from "@/lib/scoreColor";
+import { useTTS } from "@/hooks/useTTS";
+import { GradeBadge } from "./GradeBadge";
+import { PhonemeStrip } from "./PhonemeStrip";
 import { ProsodyChart } from "./ProsodyChart";
 import { CorrectionSummary } from "./CorrectionSummary";
 
@@ -16,81 +18,96 @@ type Props = {
   audioUrl: string | null;
   /** Optional word labels for prosody chart. */
   prosodyWords?: string[];
+  /** Reference sentence for TTS 标准音. */
+  referenceText?: string;
 };
 
-export function FeedbackPanel({ result, audioUrl: _audioUrl, prosodyWords }: Props) {
-  const [showPills, setShowPills] = useState(false);
-
+export function FeedbackPanel({
+  result,
+  audioUrl,
+  prosodyWords,
+  referenceText,
+}: Props) {
   const issues = useMemo(
     () => pickWorstCorrections(result, { max: 3, threshold: 70 }),
     [result],
   );
   const reason = useMemo(() => oneLineReason(result, issues), [result, issues]);
+  const { speak, speaking } = useTTS();
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const chartWords =
     prosodyWords ?? result.words.map((w) => w.word.replace(/\.$/, ""));
 
+  const ttsText =
+    referenceText ??
+    result.words.map((w) => w.word).join(" ").replace(/\s+([.,!?])/g, "$1");
+
+  const playMine = () => {
+    if (!audioUrl) return;
+    if (!audioRef.current) {
+      audioRef.current = new Audio(audioUrl);
+    } else {
+      audioRef.current.src = audioUrl;
+    }
+    void audioRef.current.play();
+  };
+
   return (
-    <div className="space-y-5 rounded-2xl border border-zinc-800/80 bg-zinc-950/60 p-5">
-      {/* Score + one-line reason */}
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">反馈 Feedback</p>
-          <div className="mt-1 flex items-baseline gap-3">
-            <span
-              className={`text-4xl font-semibold tabular-nums ${scoreColor(result.overallScore)}`}
-            >
-              {result.overallScore}
-            </span>
-            <span className="text-sm text-zinc-400">{scoreLabel(result.overallScore)}</span>
-          </div>
-          <p className="mt-2 max-w-md text-sm leading-relaxed text-zinc-400">{reason}</p>
-        </div>
-        <span className="rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-500">
-          provider: {result.provider}
-        </span>
+    <div className="space-y-6 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+      {/* Grade badge (qualitative only) + reason */}
+      <div className="space-y-2">
+        <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">反馈 Feedback</p>
+        <GradeBadge score={result.overallScore} />
+        <p className="max-w-lg text-base leading-relaxed text-zinc-600">{reason}</p>
       </div>
 
-      <ProsodyChart words={chartWords} />
+      {/* Play row */}
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => speak(ttsText)}
+          className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3.5 py-1.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-100"
+          title="播放标准音"
+        >
+          ▶ {speaking ? "播放中…" : "标准音"}
+        </button>
+        <button
+          type="button"
+          onClick={playMine}
+          disabled={!audioUrl}
+          className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
+            audioUrl
+              ? "border-zinc-200 bg-zinc-50 text-zinc-700 hover:border-zinc-300 hover:bg-zinc-100"
+              : "cursor-not-allowed border-zinc-100 bg-zinc-50/60 text-zinc-400"
+          }`}
+          title={audioUrl ? "播放我的发音" : "暂无录音"}
+        >
+          ▶ 我的发音
+        </button>
+      </div>
 
-      {/* Color words */}
-      <div className="flex flex-wrap gap-x-3 gap-y-2">
+      {/* Color words — larger IPA */}
+      <div className="flex flex-wrap gap-x-4 gap-y-3">
         {result.words.map((w, i) => (
-          <div key={`${w.word}-${i}`} className="rounded-lg px-2 py-1">
-            <span className={`text-lg font-medium ${scoreColor(w.score)}`}>{w.word}</span>
-            <span className="mt-0.5 block font-mono text-[11px] text-zinc-500">/{w.ipa}/</span>
+          <div key={`${w.word}-${i}`} className="rounded-lg px-1.5 py-0.5">
+            <span className={`text-xl font-semibold md:text-2xl ${scoreColor(w.score)}`}>
+              {w.word}
+            </span>
+            <span className="mt-1 block font-mono text-sm font-medium text-zinc-500">
+              /{w.ipa}/
+            </span>
           </div>
         ))}
       </div>
 
-      <CorrectionSummary items={issues} />
+      {/* Full phoneme strip — always visible */}
+      <PhonemeStrip words={result.words} />
 
-      {/* Optional: full phoneme pills */}
-      <div>
-        <button
-          type="button"
-          onClick={() => setShowPills((v) => !v)}
-          className="text-xs text-zinc-500 underline-offset-2 hover:text-zinc-300 hover:underline"
-        >
-          {showPills ? "收起全部音素" : "展开全部音素"}
-        </button>
-        {showPills && (
-          <div className="mt-3 space-y-3">
-            {result.words.map((w, i) => (
-              <div
-                key={`pills-${w.word}-${i}`}
-                className="rounded-xl border border-zinc-800 bg-black/40 p-3"
-              >
-                <p className="mb-2 text-sm text-zinc-400">
-                  {w.word}{" "}
-                  <span className={`tabular-nums ${scoreColor(w.score)}`}>{w.score}</span>
-                </p>
-                <PhonemePills phonemes={w.phonemes} />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Prosody stacked directly below phoneme strip */}
+      <ProsodyChart words={chartWords} />
+
+      <CorrectionSummary items={issues} />
     </div>
   );
 }

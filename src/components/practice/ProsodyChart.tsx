@@ -1,11 +1,8 @@
 "use client";
 
 type Props = {
-  /** Word labels under / above the chart. */
   words?: string[];
-  /** Native pitch samples 0–1. */
   native?: number[];
-  /** Learner pitch samples 0–1. */
   learner?: number[];
   className?: string;
 };
@@ -29,85 +26,97 @@ function toPath(samples: number[], w: number, h: number, padY: number): string {
     .join(" ");
 }
 
+function PitchPane({
+  label,
+  badgeClass,
+  stroke,
+  dashed,
+  samples,
+  words,
+}: {
+  label: string;
+  badgeClass: string;
+  stroke: string;
+  dashed?: boolean;
+  samples: number[];
+  words: string[];
+}) {
+  const W = 400;
+  const H = 88;
+  const padY = 10;
+  const path = toPath(samples, W, H, padY);
+
+  return (
+    <div className="rounded-xl border border-zinc-200 bg-zinc-50/80 px-3 pb-2 pt-3">
+      <div className="mb-2 flex items-center justify-between">
+        <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${badgeClass}`}>
+          {label}
+        </span>
+      </div>
+      <div className="mb-1 flex justify-between px-1 text-[11px] text-zinc-500">
+        {words.map((w, i) => (
+          <span key={`${label}-${w}-${i}`} className="font-mono">
+            {w}
+          </span>
+        ))}
+      </div>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="h-20 w-full"
+        role="img"
+        aria-label={label}
+      >
+        {[0.25, 0.5, 0.75].map((g) => (
+          <line
+            key={g}
+            x1={0}
+            x2={W}
+            y1={padY + (1 - g) * (H - padY * 2)}
+            y2={padY + (1 - g) * (H - padY * 2)}
+            stroke="#e4e4e7"
+            strokeDasharray="3 4"
+          />
+        ))}
+        <path
+          d={path}
+          fill="none"
+          stroke={stroke}
+          strokeWidth="2.25"
+          strokeDasharray={dashed ? "5 4" : undefined}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity="0.95"
+        />
+      </svg>
+    </div>
+  );
+}
+
 export function ProsodyChart({
   words = ["Thank", "ˈyou", "ˈver-", "much"],
   native = DEFAULT_NATIVE,
   learner = DEFAULT_LEARNER,
   className = "",
 }: Props) {
-  const W = 400;
-  const H = 110;
-  const padY = 12;
-  const nativePath = toPath(native, W, H, padY);
-  const learnerPath = toPath(learner, W, H, padY);
-
   return (
-    <div className={`space-y-2 ${className}`}>
-      <div className="flex items-center justify-between">
-        <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">韵律 Prosody</p>
-        <div className="flex items-center gap-3 text-[11px] text-zinc-500">
-          <span className="inline-flex items-center gap-1.5">
-            <span className="inline-block h-px w-4 border-t border-dashed border-emerald-400" />
-            范读
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="inline-block h-0.5 w-4 bg-amber-400" />
-            你的
-          </span>
-        </div>
-      </div>
-
-      <div className="rounded-xl border border-zinc-800/80 bg-black/30 px-3 pb-2 pt-3">
-        {/* Word labels */}
-        <div className="mb-1 flex justify-between px-1 text-[11px] text-zinc-500">
-          {words.map((w, i) => (
-            <span key={`${w}-${i}`} className="font-mono">
-              {w}
-            </span>
-          ))}
-        </div>
-
-        <svg
-          viewBox={`0 0 ${W} ${H}`}
-          className="h-24 w-full"
-          role="img"
-          aria-label="Pitch comparison: native vs learner"
-        >
-          {/* Grid */}
-          {[0.25, 0.5, 0.75].map((g) => (
-            <line
-              key={g}
-              x1={0}
-              x2={W}
-              y1={padY + (1 - g) * (H - padY * 2)}
-              y2={padY + (1 - g) * (H - padY * 2)}
-              stroke="#27272a"
-              strokeDasharray="3 4"
-            />
-          ))}
-          {/* Native dashed */}
-          <path
-            d={nativePath}
-            fill="none"
-            stroke="#34d399"
-            strokeWidth="2"
-            strokeDasharray="5 4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            opacity="0.9"
-          />
-          {/* Learner solid */}
-          <path
-            d={learnerPath}
-            fill="none"
-            stroke="#fbbf24"
-            strokeWidth="2.25"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            opacity="0.95"
-          />
-        </svg>
-      </div>
+    <div className={`space-y-3 ${className}`}>
+      <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">韵律 Prosody</p>
+      {/* Correct first, then user stacked below */}
+      <PitchPane
+        label="正确 Correct · 范读"
+        badgeClass="bg-emerald-100 text-emerald-700"
+        stroke="#059669"
+        dashed
+        samples={native}
+        words={words}
+      />
+      <PitchPane
+        label="你的 Yours"
+        badgeClass="bg-zinc-100 text-zinc-600"
+        stroke="#d97706"
+        samples={learner}
+        words={words}
+      />
     </div>
   );
 }

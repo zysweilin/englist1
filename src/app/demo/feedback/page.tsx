@@ -3,14 +3,12 @@
 import Link from "next/link";
 import { FeedbackPanel } from "@/components/practice/FeedbackPanel";
 import { IpaGuide } from "@/components/practice/IpaGuide";
-import {
-  APPLE_ANNOTATION,
-  THANK_YOU_ANNOTATION,
-} from "@/lib/annotations";
+import { THANK_YOU_ANNOTATION } from "@/lib/annotations";
 import type { PronunciationResult } from "@/lib/types";
 
+/** Main demo: overallScore 82 → Good badge + θ/v/ŋ corrections. */
 const DEMO: PronunciationResult = {
-  overallScore: 72,
+  overallScore: 82,
   provider: "mock",
   durationMs: 1950,
   tips: [],
@@ -69,45 +67,36 @@ const DEMO: PronunciationResult = {
 
 export default function FeedbackDemoPage() {
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-4 py-10">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 py-10">
       <div className="space-y-2">
-        <Link href="/" className="text-sm text-zinc-500 hover:text-zinc-300">
+        <Link href="/" className="text-sm text-zinc-500 hover:text-zinc-800">
           ← 返回首页
         </Link>
-        <h1 className="text-2xl font-semibold text-zinc-100">效果预览 · Design v1</h1>
+        <h1 className="text-2xl font-semibold text-zinc-900">效果预览 · Light</h1>
         <p className="text-sm text-zinc-500">
-          朗读前引导（IPA 标注）+ 朗读后反馈（韵律图 · 纠正总结）
+          定性徽章 · 等宽音素条 · 韵律叠放 · 标准音 / 我的发音
         </p>
       </div>
 
-      {/* —— Guide layer —— */}
-      <section className="space-y-4">
+      {/* Guide */}
+      <section className="space-y-3">
         <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">
           朗读前 · Guide
         </p>
-
-        <div className="space-y-6 rounded-2xl border border-zinc-800/80 bg-zinc-950/60 p-5">
-          <div>
-            <p className="mb-3 text-[11px] text-zinc-600">连读 / 弱读示例</p>
-            <IpaGuide annotation={APPLE_ANNOTATION} />
-          </div>
-
-          <div className="border-t border-zinc-800/80 pt-5">
-            <p className="mb-3 text-[11px] text-zinc-600">本句将用于下方反馈</p>
-            <IpaGuide annotation={THANK_YOU_ANNOTATION} showLegend={false} />
-          </div>
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+          <IpaGuide annotation={THANK_YOU_ANNOTATION} />
         </div>
       </section>
 
-      {/* —— Feedback layer —— */}
-      <section className="space-y-4">
+      {/* Feedback — score 82 → Good */}
+      <section className="space-y-3">
         <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">
-          朗读后 · Feedback
+          朗读后 · Feedback（score 82 → Good）
         </p>
-        <p className="text-sm text-zinc-500">Thank you very much. — Mock</p>
         <FeedbackPanel
           result={DEMO}
           audioUrl={null}
+          referenceText="Thank you very much."
           prosodyWords={["Thank", "you", "ˈver-", "much"]}
         />
       </section>

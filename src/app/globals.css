@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #e4e4e7;
+  --background: #ffffff;
+  --foreground: #18181b;
 }
 
 @theme inline {
@@ -10,10 +10,11 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif-display: var(--font-instrument-serif);
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
@@ -24,7 +25,7 @@ body {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #3f3f46 transparent;
+  scrollbar-color: #d4d4d8 transparent;
 }
 
 button {
