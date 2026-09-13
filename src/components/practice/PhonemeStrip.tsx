@@ -33,10 +33,6 @@ function userTone(p: PhonemeFeedback): {
 const GRID =
   "grid grid-cols-[repeat(auto-fill,minmax(2.5rem,2.5rem))] gap-1.5";
 
-/** Longer IPA labels (tʃ, aʊ, …) use slightly smaller text; cell size stays fixed. */
-function labelTextClass(label: string): string {
-  return label.length >= 2 ? "text-[11px]" : "text-sm";
-}
 
 function FlatCells({
   words,
@@ -77,7 +73,13 @@ function FlatCells({
           className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border ${c.cell}`}
         >
           <span
-            className={`font-mono font-semibold leading-none ${labelTextClass(c.label)} ${c.text}`}
+            className={`leading-none ${c.text}`}
+            style={{
+              fontFamily:
+                "'Englist IPA', 'Noto Sans', sans-serif",
+              fontSize: "0.8125rem",
+              fontWeight: 600,
+            }}
           >
             /{c.label}/
           </span>
