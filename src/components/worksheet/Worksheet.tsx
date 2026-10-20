@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FEATURE_INFO, MAX_TEXT_LENGTH, type CoachSentence, type FeatureKind, type Lesson } from "@/lib/coach/contracts";
 import { EXAMPLE_TEXTS, exampleLesson } from "@/lib/coach/examples";
-import { markedIpa, textLesson } from "@/lib/coach/display";
+import { markedIpa, naturalIpa, textLesson } from "@/lib/coach/display";
 import { audioExtension, deleteTake, loadTakes, saveTake, type PracticeTake } from "@/lib/coach/recordings";
 import { useLessonAudio } from "@/hooks/useLessonAudio";
 import { useCapture, type Capture } from "@/hooks/useCapture";
@@ -244,13 +244,13 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
         </div>
         {sentence && lesson ? <>
         <div className="sentence-stage">
-          {annotated && <p className="sentence-instruction">点一个词，听懂它为什么这样读</p>}
+          {annotated && <p className="sentence-instruction">{sentence.readingNote || "点一个词，听懂它为什么这样读"}</p>}
           <div className="sentence-line" lang="en" aria-label={sentence.text}>
             {sentence.words.map((word, index) => {
               const marks = sentence.features.filter((feature) => index >= feature.from && index <= feature.to);
               const outgoing = sentence.features.filter((feature) => feature.from === index);
               const weak = marks.some((feature) => feature.kind === "reduction");
-              const link = outgoing.some((feature) => ["linking", "glide", "assimilation"].includes(feature.kind));
+              const link = outgoing.some((feature) => feature.to === index + 1 && ["linking", "glide", "assimilation"].includes(feature.kind));
               const pause = outgoing.some((feature) => feature.kind === "pause");
               const focused = !activeKind || marks.some((feature) => feature.kind === activeKind);
               const activeWord = audio.wordPosition !== null && audio.wordPosition >= word.start && audio.wordPosition < word.end;
@@ -258,10 +258,21 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
               return <span className={`word-cell ${weak ? "weak-word" : ""} ${selectedWord === index ? "word-selected" : ""} ${activeWord ? "word-playing" : ""} ${focused ? "" : "word-muted"}`} key={`${sentence.id}-${index}`}>
                 <button className="word-button" onClick={() => setSelectedWord(selectedWord === index ? null : index)} aria-pressed={selectedWord === index} aria-label={`${word.text}${word.stress ? "，重读" : ""}${weak ? "，弱读" : ""}，查看发音细节`}>
                   <span className="word-text">{word.text}</span>
-                  {showIpa && word.ipa && <span className="word-ipa">
-                    {word.stress && <span className="ipa-stress" aria-label="重读">•</span>}
-                    /{markedIpa(sentence, index)}/
-                    {soundMarks.map((mark) => <sup key={mark.kind} className={`ipa-symbol kind-${mark.kind}`} title={mark.explanation}>{mark.kind === "assimilation" ? mark.notation : FEATURE_INFO[mark.kind].symbol}</sup>)}
+                  {showIpa && word.ipa && <span className={`word-ipa ${sentence.nucleus === index ? "ipa-nucleus" : ""}`}>
+                    {word.stress && <span className="ipa-stress" aria-label={sentence.nucleus === index ? "主要重音" : "重读"}>•</span>}
+                    {word.sounds ? <>
+                      {index === 0 && "["}
+                      {word.sounds.map((part, partIndex) => {
+                        const annotations = part.featureIds.map((id) => sentence.features[id]);
+                        const label = annotations.map((feature) => `${FEATURE_INFO[feature.kind].label}：${feature.explanation}`).join("\n");
+                        return <span key={partIndex} title={label || undefined} className={`ipa-part ${annotations.length ? "ipa-annotated" : ""} ${annotations.some((feature) => feature.kind === "reduction") ? "ipa-reduced" : ""} ${activeKind && annotations.some((feature) => feature.kind === activeKind) ? "ipa-highlight" : ""}`}>
+                          {part.omitted ? <del aria-label={`${part.ipa} 在这套读法中省略`}>{part.ipa}</del> : part.ipa}
+                        </span>;
+                      })}
+                      {index === sentence.words.length - 1 && "]"}
+                    </> : <>/{markedIpa(sentence, index)}/
+                      {soundMarks.map((mark) => <sup key={mark.kind} className={`ipa-symbol kind-${mark.kind}`} title={mark.explanation}>{mark.kind === "assimilation" ? mark.notation : FEATURE_INFO[mark.kind].symbol}</sup>)}
+                    </>}
                     {link && <span className="ipa-link" aria-label="与下一个音标衔接">‿</span>}
                     {pause && <span className="ipa-pause" aria-label="稍停"> |</span>}
                     {index === sentence.words.length - 1 && <span className="ipa-tone" title={sentence.toneTip}>{toneSymbol[sentence.tone]}</span>}
@@ -286,7 +297,7 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
           <span className="note-icon">✳</span><div><span className="note-label">只记住这一点</span><p>{sentence.focus}</p></div>
         </div>
         {selectedWord !== null && <section className="word-detail" aria-live="polite">
-          <div className="detail-heading"><h2>{sentence.words[selectedWord].text} <span>/{markedIpa(sentence, selectedWord)}/</span></h2><button className="quiet-button" onClick={() => setSelectedWord(null)} aria-label="收起单词说明"><Icon name="close" size={17} /></button></div>
+          <div className="detail-heading"><h2>{sentence.words[selectedWord].text} <span>基础音标 /{sentence.words[selectedWord].ipa}/</span></h2><button className="quiet-button" onClick={() => setSelectedWord(null)} aria-label="收起单词说明"><Icon name="close" size={17} /></button></div>
           {features.length ? features.map((feature, i) => <p key={i}><b>{FEATURE_INFO[feature.kind].label} <span>{feature.notation}</span></b>{feature.explanation}{feature.optional && <small>一种自然读法</small>}</p>) : <p>{sentence.words[selectedWord].stress ? "这个词承载句子的重点，元音稍长、声音更清楚。" : "顺着整句的节奏读，不需要刻意改变这个词的声音。"}</p>}
         </section>}
         <details className="all-details" open>
@@ -295,6 +306,15 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
             <div><span className="detail-symbol">{toneSymbol[sentence.tone]}</span><p><strong>语调与重音</strong>{sentence.toneTip}</p></div>
           </div>
         </details></>}
+        {annotated && sentence.alternatives && <>
+          <p className="reading-legend" title={`实际发音：[${naturalIpa(sentence)}]`}>删除线：本次省略的音 · 下划线：有发音细节，悬停可查看 · 加粗：主要重音</p>
+          {sentence.alternatives.length > 0 && <details className="all-details">
+            <summary>其他自然读法 <span>{sentence.alternatives.length} 种 <span aria-hidden="true">＋</span></span></summary>
+            <div className="detail-list">{sentence.alternatives.map((alternative, index) => <div key={index}>
+              <p><strong>{sentence.words.slice(alternative.from, alternative.to + 1).map((word) => word.text).join(" ")} <em>[{alternative.ipa}]</em></strong>{alternative.explanation}</p>
+            </div>)}</div>
+          </details>}
+        </>}
         <div className="paper-bottom"><span>{annotated && <>{lesson.source === "example" ? "教学示例" : "AI 语境分析"} <span>·</span> 标注是一种建议读法，会随语境和语速变化</>}</span>
           <div className="sentence-navigation"><button className="quiet-button" disabled={sentenceIndex === 0 || recording || !!busy} onClick={() => moveSentence(-1)} aria-label="上一句"><Icon name="chevron" size={16} style={{ transform: "rotate(180deg)" }} /></button><span>{sentenceIndex + 1} / {lesson.sentences.length}</span><button className="quiet-button" disabled={sentenceIndex === lesson.sentences.length - 1 || recording || !!busy} onClick={() => moveSentence(1)} aria-label="下一句"><Icon name="chevron" size={16} /></button></div>
         </div>

@@ -18,6 +18,8 @@ export function textLesson(text: string): Lesson {
 
 /** Put sound changes in the transcription instead of badges under the English word. */
 export function markedIpa(sentence: CoachSentence, index: number): string {
+  const sounds = sentence.words[index].sounds;
+  if (sounds) return sounds.map((part) => part.omitted ? `(${part.ipa})` : part.ipa).join("");
   let ipa = sentence.words[index].ipa;
   for (const feature of sentence.features.filter((item) => item.from === index)) {
     if (feature.kind === "flap") {
@@ -38,4 +40,16 @@ export function markedIpa(sentence: CoachSentence, index: number): string {
     }
   }
   return ipa;
+}
+
+/** The selected realization is supplied by the model, never reconstructed with sound-replacement rules. */
+export function naturalIpa(sentence: CoachSentence): string {
+  return sentence.words.map((word, index) => {
+    const ipa = word.sounds ? word.sounds.filter((part) => !part.omitted).map((part) => part.ipa).join("") : markedIpa(sentence, index);
+    const outgoing = sentence.features.filter((feature) => feature.from === index);
+    const boundary = outgoing.some((feature) => feature.kind === "pause") ? " | " :
+      index === sentence.words.length - 1 ? "" :
+        outgoing.some((feature) => feature.kind === "linking" || feature.kind === "glide") ? "‿" : " ";
+    return `${ipa}${boundary}`;
+  }).join("");
 }

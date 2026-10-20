@@ -1,4 +1,6 @@
 [
+  { "text": "She's one of my best friends.", "check": "No consonant-vowel link at she's one: one starts /w/. Weak of /əv/, one‿of, retain /maɪ/ if selected. Choose either t deletion or unreleased t in best, never both or a flap. Keep alternative d deletion in friends separate unless selected. Sound anchors must locate all changes in IPA." },
+  { "text": "We need a little water.", "check": "Analyze unfamiliar input dynamically. Select appropriate flaps in little/water; reduction of a, possible dark l; preserve word identity and attach annotations to the actual returned IPA." },
   { "text": "I can help, but yes, I can.", "check": "First can can reduce; phrase-final can stays strong. No link across the comma pause." },
   { "text": "An hour at a university.", "check": "hour is vowel-initial; university is /j/-initial. Do not infer linking from letters." },
   { "text": "I want to eat. I want you to eat.", "check": "wanna can be a possibility for the first sentence, never replace want you to." },

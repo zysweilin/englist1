@@ -7,6 +7,8 @@ const { POST: analyze } = require("../src/app/api/coach/analyze/route.ts");
 const { POST: speech } = require("../src/app/api/coach/speech/route.ts");
 const { POST: transcribe } = require("../src/app/api/coach/transcribe/route.ts");
 const { boundedRequest, sameOrigin } = require("../src/lib/coach/server.ts");
+const { markedIpa, naturalIpa } = require("../src/lib/coach/display.ts");
+const { text: naturalText, rawNaturalLesson } = require("./natural-reading.cjs");
 
 function rawLesson(text = EXAMPLE_TEXTS[0]) {
   return { sentences: exampleLesson(text).sentences.map(({ text: _text, words, ...sentence }) => ({
@@ -93,18 +95,69 @@ test("provider structured response is validated and source data stays literal", 
       const body = JSON.parse(init.body);
       assert.equal(body.store, false);
       assert.equal(body.text.format.strict, true);
-      return Response.json({ status: "completed", output: [{ content: [{ type: "output_text", text: JSON.stringify(rawLesson()) }] }] });
+      assert.equal(JSON.parse(body.input)[0].text, naturalText);
+      assert.ok(body.text.format.schema.properties.sentences.items.properties.words.items.required.includes("sounds"));
+      return Response.json({ status: "completed", output: [{ content: [{ type: "output_text", text: JSON.stringify(rawNaturalLesson()) }] }] });
     };
-    const response = await analyze(jsonRequest("analyze", { text: EXAMPLE_TEXTS[0] }));
+    const response = await analyze(jsonRequest("analyze", { text: naturalText }));
     assert.equal(response.status, 200);
     const data = await response.json();
     assert.equal(data.source, "ai");
-    assert.equal(data.sentences[0].words[0].text, "I");
+    assert.equal(data.sentences[0].words[0].text, "She's");
+    assert.equal(data.sentences[0].alternatives.length, 2);
     global.fetch = async () => Response.json({ status: "incomplete", output: [] });
     assert.equal((await analyze(jsonRequest("analyze", { text: EXAMPLE_TEXTS[0] }))).status, 502);
     global.fetch = async () => Response.json({ status: "completed", output: [{ content: [{ type: "refusal" }] }] });
     assert.equal((await analyze(jsonRequest("analyze", { text: EXAMPLE_TEXTS[0] }))).status, 502);
   } finally { global.fetch = originalFetch; delete process.env.OPENAI_API_KEY; }
+});
+
+test("natural reading keeps base IPA, exact marked sounds and alternatives separate", () => {
+  const lesson = validateAnalysis(rawNaturalLesson(), prepareText(naturalText), true);
+  const sentence = lesson.sentences[0];
+  assert.equal(sentence.words[2].ipa, "ʌv");
+  assert.equal(markedIpa(sentence, 2), "əv");
+  assert.equal(markedIpa(sentence, 4), "bɛs(t)");
+  assert.equal(naturalIpa(sentence), "ʃiz wʌ̃n‿əv maɪ bɛs fɹɛ̃ndz");
+  assert.equal(sentence.nucleus, 5);
+  assert.equal(sentence.alternatives[0].ipa, "bɛst̚ fɹɛndz");
+  assert.ok(!sentence.features.some((feature) => feature.kind === "unreleased"));
+});
+
+test("sound-level contract rejects missing data, dangling anchors and conflicting realizations", () => {
+  for (const mutate of [
+    (raw) => delete raw.sentences[0].words[0].sounds,
+    (raw) => raw.sentences[0].words[0].sounds[0].featureIds.push(999),
+    (raw) => raw.sentences[0].words[0].sounds[0].featureIds.push(0),
+    (raw) => raw.sentences[0].words[2].sounds[0].featureIds = [],
+    (raw) => raw.sentences[0].words[4].sounds[1].omitted = false,
+    (raw) => raw.sentences[0].words[4].sounds[1].ipa = "(t)",
+    (raw) => raw.sentences[0].nucleus = 999,
+    (raw) => raw.sentences[0].nucleus = 0,
+    (raw) => raw.sentences[0].alternatives[0].to = 99,
+    (raw) => {
+      raw.sentences[0].features.push({ kind: "unreleased", from: 4, to: 4, notation: "t̚", explanation: "收住", optional: true });
+      raw.sentences[0].words[4].sounds[1].featureIds.push(7);
+    },
+  ]) {
+    const raw = rawNaturalLesson(); mutate(raw);
+    assert.throws(() => validateAnalysis(raw, prepareText(naturalText), true));
+  }
+  assert.throws(() => validateAnalysis(rawLesson(), prepareText(EXAMPLE_TEXTS[0]), true));
+});
+
+test("sound display preserves the supplied position instead of replacing a guessed last t", () => {
+  const raw = { sentences: [{
+    id: 0, translation: "纹身。", readingNote: "普通语速。", nucleus: 0,
+    tone: "fall", toneTip: "句尾下降。", focus: "重音在第二音节。",
+    words: [{ index: 0, ipa: "tæˈtu", stress: true,
+      sounds: [{ ipa: "tæ", featureIds: [], omitted: false }, { ipa: "ˈtʰu", featureIds: [0], omitted: false }] }],
+    features: [{ kind: "aspiration", from: 0, to: 0, notation: "tʰ", explanation: "重读音节开头的 /t/ 送气。", optional: false }],
+    alternatives: [],
+  }] };
+  const sentence = validateAnalysis(raw, prepareText("Tattoo."), true).sentences[0];
+  assert.equal(naturalIpa(sentence), "tæˈtʰu");
+  assert.equal(markedIpa(sentence, 0), "tæˈtʰu");
 });
 test("speech passes exact text and streams audio; provider failures do not leak secrets", async () => {
   const originalFetch = global.fetch;

@@ -27,7 +27,11 @@
 
 ## 数据与声音
 
-`ipa` 是上下文中的宽式音标，`stress` 单独表示句子重音；[ɾ] 等窄式变体写在 `notation` 中。符号与词索引绑定，不靠改写英语拼写。省音和轻弹等可选变化带 `optional`，不把一种风格称为唯一正确答案。
+任意输入都经过 `/api/coach/analyze` 调用 OpenAI Responses API，以严格 JSON Schema 返回整句自然读法。系统指令固定以下流程：理解语义和句法 → 确定基础发音 → 选择重音、意群和语调 → 生成一套连贯读法及音标位置 → 给出中文说明。无需为每个新句子写预设答案，也不把网页当作当前聊天会话。
+
+`ipa` 保留每个词在当前含义下的基础发音；`sounds` 则是所选自然读法的音标片段。每个片段包含 `ipa`、指向具体说明的 `featureIds`、是否省去的 `omitted`。前端直接显示这些片段，并把省去的音画为删除线。所有未省去片段相接即为实际建议读法，不再用正则猜测应该修改哪个 /t/。连读和停顿由明确的相邻词边界呈现。旧教学示例和已保存的录音数据仍兼容旧格式。
+
+`stress` 表示句子重音，`nucleus` 指定主要重音；`readingNote` 声明本次采用的语速与表达方式。`features` 只解释本次选定读法中的变化，其他读法放在 `alternatives`，默认折叠。`optional` 表示当前选择会随说话风格变化，不代表把互相矛盾的变化同时作用到一个音上。服务端检查位置、引用、遗漏、主要重音以及省音/闪音/不完全爆破冲突；这些检查无法证明语言学判断本身完全正确。
 
 TTS 接收原句和统一教学风格指令。它不是被强制对齐到模型标注的真人参考录音，当前不能保证每一个可选音值都出现。全部标记在播放时保持可见，AI 范读不伪造时间轴。
 
@@ -38,6 +42,8 @@ TTS 接收原句和统一教学风格指令。它不是被强制对齐到模型�
 - [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses)
 - [OpenAI Create speech](https://developers.openai.com/api/reference/resources/audio/subresources/speech/methods/create)
 - [OpenAI File transcription](https://developers.openai.com/api/docs/guides/speech-to-text)
+
+补充教学依据：[Pronuncian 的 best friends 省 /t/ 示例](https://pronuncian.com/deletion-linking-the-dropped-t)、[美式语音教材的介词弱读](https://opentextbooks.rug.nl/americanenglishphonetics2/chapter/7-8-gradation-of-prepositions/)、[t/d 省音](https://opentextbooks.rug.nl/americanenglishphonetics2/chapter/13-8-2-t-d-elision-in-coda/)。这些知识固定在分析要求中，不会在每次输入时重新搜索网页。
 
 ## 当前验证边界
 

@@ -68,6 +68,12 @@
 .word-playing .word-text { background: #e1edda; border-radius: 5px; }
 .stress-mark { font-size: 17px; color: #6f8b65; line-height: 14px; height: 14px; }
 .word-ipa { position: relative; font-family: "Englist IPA", Arial, sans-serif; font-size: 23px; font-weight: 500; color: #587264; line-height: 1.8; margin-top: 16px; padding-bottom: 11px; white-space: nowrap; }
+.ipa-nucleus { font-weight: 750; color: #324e40; }
+.ipa-annotated { text-decoration: underline dotted #a6b8a4; text-underline-offset: 7px; }
+.ipa-reduced { color: #718666; }
+.ipa-highlight { background: #e1edda; border-radius: 3px; }
+.ipa-part del { color: #a67948; text-decoration-thickness: 2px; }
+.reading-legend { padding: 12px 28px 18px; color: #7e8d75; font-size: 12px; line-height: 1.8; }
 .paper-empty { min-height: 220px; }
 .ipa-stress { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); color: #6f8b65; font-size: 17px; }
 .ipa-link { position: absolute; left: 100%; bottom: 4px; padding-left: 3px; font-size: 24px; line-height: 1; color: #699378; }

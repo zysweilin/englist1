@@ -33,6 +33,6 @@ export async function POST(request: Request) {
       .map((item: { text: string }) => item.text).join("");
     let raw: unknown;
     try { raw = JSON.parse(output); } catch { throw new CoachError("没有收到完整的发音分析，请重试。", 502); }
-    return Response.json(validateAnalysis(raw, source), { headers: { "Cache-Control": "no-store" } });
+    return Response.json(validateAnalysis(raw, source, true), { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return errorResponse(error); }
 }
