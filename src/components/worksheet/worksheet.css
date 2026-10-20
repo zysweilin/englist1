@@ -25,6 +25,13 @@
 .intro p { color: #7b847c; font-size: 13px; letter-spacing: .4px; }
 .input-card { padding: 21px 25px 13px; background: white; border: 1px solid #e1e5dd; border-radius: 13px; box-shadow: 0 3px 12px #263b3703; }
 .input-label { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+.chatgpt-connection { margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.chatgpt-connection-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.chatgpt-connection strong { font-size: 13px; font-weight: 600; }
+.chatgpt-connection p { margin: 6px 0 0; font-size: 12px; line-height: 1.7; color: #728076; }
+.chatgpt-connection a { color: var(--green); text-decoration: underline; }
+.chatgpt-connection p button { margin-left: 12px; }
+.chatgpt-signin { background: #171717; color: #fff; border: 1px solid #171717; border-radius: 8px; padding: 11px 16px; font-size: 14px; white-space: nowrap; }
 .input-label label { font-weight: 600; color: #526159; }
 .input-label > span { font-size: 10px; color: #8a938b; letter-spacing: .6px; }
 .small-dot { padding: 0 5px; }

@@ -9,6 +9,9 @@ require.extensions[".ts"] = (module, filename) => module._compile(ts.transpileMo
 ).outputText, filename);
 const resolve = Module._resolveFilename;
 Module._resolveFilename = function (request, ...args) {
+  // Tests transpile application imports to CommonJS; the official SDK publishes
+  // an import-only export. Node 24 can load its ESM implementation directly.
+  if (request === "@siwc/local") return path.resolve(__dirname, "../vendor/siwc-local/dist/index.js");
   if (request.startsWith("@/")) request = path.resolve(__dirname, "../src", request.slice(2));
   // The sentinel is a bundler boundary, not application behavior.
   if (request === "server-only") return __filename;

@@ -1,5 +1,6 @@
 import "server-only";
 import { CoachError } from "./contracts";
+import { usesChatGPTPlan } from "./chatgpt-policy";
 
 export function hasCoachKey() { return Boolean(process.env.OPENAI_API_KEY?.trim()); }
 
@@ -51,6 +52,7 @@ export function guard(request: Request) {
 }
 
 export async function openai(path: string, body: object | FormData, signal?: AbortSignal) {
+  if (usesChatGPTPlan()) throw new CoachError("当前使用 ChatGPT 套餐，未启用另行计费的 API；范读请使用设备语音。", 503);
   if (!hasCoachKey()) throw new CoachError("AI 服务尚未启用，请先体验示例。部署者需配置 OPENAI_API_KEY。", 503);
   const response = await fetch(`https://api.openai.com/v1/${path}`, {
     method: "POST",

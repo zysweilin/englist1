@@ -8,6 +8,7 @@ import { audioExtension, deleteTake, loadTakes, saveTake, type PracticeTake } fr
 import { useLessonAudio } from "@/hooks/useLessonAudio";
 import { useCapture, type Capture } from "@/hooks/useCapture";
 import { Icon } from "./Icons";
+import { ChatGPTConnection } from "./ChatGPTConnection";
 
 const toneSymbol = { fall: "↘", rise: "↗", "fall-rise": "↘↗" };
 
@@ -35,7 +36,7 @@ function TakePlayer({ take, onDelete, onPlay }: { take: PracticeTake; onDelete: 
   </div>;
 }
 
-export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
+export function Worksheet({ aiEnabled, chatgptPlan = false }: { aiEnabled: boolean; chatgptPlan?: boolean }) {
   const [input, setInput] = useState("");
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [sentenceIndex, setSentenceIndex] = useState(0);
@@ -95,7 +96,7 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
     setShowHistory(true);
     if (context.purpose === "practice") return;
     if (!aiEnabled) {
-      setError("录音已保留。语音转文字需要部署者启用 AI 服务；现在也可以直接输入英文。");
+      setError(chatgptPlan ? "录音已保留。当前套餐接入先验证文本分析；请在输入框填写要练习的英文。" : "录音已保留。语音转文字需要部署者启用 AI 服务；现在也可以直接输入英文。");
       return;
     }
     const controller = new AbortController();
@@ -138,7 +139,7 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
     setError(""); setBusy("analyzing");
     // Start device playback immediately when server-side AI audio is unavailable,
     // while still asking the analysis endpoint for IPA and connected-speech marks.
-    if (shouldPlay && !aiEnabled) void audio.play(text, 1, true);
+    if (shouldPlay && !aiEnabled && !chatgptPlan) void audio.play(text, 1, true);
     try {
       const response = await fetch("/api/coach/analyze", {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }), signal: controller.signal,
@@ -149,7 +150,7 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
       changeLesson(data);
       setBusy(null);
       resultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      if (shouldPlay && aiEnabled) void audio.play(data.sentences[0].text, 1);
+      if (shouldPlay && (aiEnabled || chatgptPlan)) void audio.play(data.sentences[0].text, 1, chatgptPlan);
     } catch (failure) {
       if (version !== operationVersion.current) return;
       setBusy(null);
@@ -159,8 +160,8 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
       } catch {
         // Keep the submitted words and immediate device playback available.
       }
-      if (aiEnabled) setError(failure instanceof Error ? failure.message : "分析失败，请重试。");
-      if (shouldPlay && aiEnabled) void audio.play(text, 1, true);
+      if (aiEnabled || chatgptPlan) setError(failure instanceof Error ? failure.message : "分析失败，请重试。");
+      if (shouldPlay && (aiEnabled || chatgptPlan)) void audio.play(text, 1, true);
     }
   }
   async function toggleRecording(purpose: PracticeTake["purpose"]) {
@@ -210,6 +211,7 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
       </section>
 
       <section className="input-card" aria-label="输入练习内容">
+        {chatgptPlan && <ChatGPTConnection />}
         <div className="input-label"><label htmlFor="practice-input">今天，你想说什么？</label><span>美式英语 <span className="small-dot">·</span> EN–US</span></div>
         <textarea ref={inputRef} id="practice-input" value={input} maxLength={MAX_TEXT_LENGTH} rows={2}
           placeholder="Type a sentence, or just say it…"
@@ -230,7 +232,7 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
               : <button className="primary-button" onClick={() => void analyze(true)} disabled={recording}><Icon name="play" size={16} />播放并标注</button>}
           </div>
         </div>
-        <p className="input-privacy">语音输入会发送至 AI 转写；下方的「录下我的发音」仅保存在本机。每次最多 60 秒。</p>
+        <p className="input-privacy">{chatgptPlan ? "文本发送至 ChatGPT 分析；当前录音仅保存在本机，每次最多 60 秒。" : "语音输入会发送至 AI 转写；下方的「录下我的发音」仅保存在本机。每次最多 60 秒。"}</p>
       </section>
       <div className="example-row"><span>试一句</span>{EXAMPLE_TEXTS.map((text, index) => <button key={text} disabled={recording || !!busy} onClick={() => chooseExample(text)}>{["日常表达", "点一瓶水", "出门计划"][index]}<Icon name="arrow" size={13} /></button>)}</div>
       {(error || capture.error) && <div className="error-notice" role="alert"><span>{error || capture.error}</span>{error && input.trim() && <button className="text-button" onClick={() => { stopTakeAudio(); void audio.play(input, 1, true); }} disabled={recording}>先试听原文</button>}</div>}
@@ -338,7 +340,7 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
         <div className="guide-grid"><div><b>•</b><p><strong>重读</strong>重点词稍长、更清楚；其余词轻轻带过。</p></div>{Object.entries(FEATURE_INFO).map(([kind, info]) => <div key={kind}><b className={`kind-${kind}`}>{info.symbol}</b><p><strong>{info.label}</strong>{info.hint}</p></div>)}<div><b>↘ ↗</b><p><strong>语调</strong>向下表示收束，向上常用于询问或未说完；要结合语境。</p></div></div>
         <p className="guide-footnote">“吞音”常混指省音和不完全爆破。这里分开标注，帮助你保留该有的口腔动作。</p>
       </section>}
-      {!aiEnabled && <p className="setup-notice">当前为示例模式。部署时设置 <code>OPENAI_API_KEY</code>，即可启用任意句子的分析、中文翻译、AI 范读与语音转写。</p>}
+      {!aiEnabled && !chatgptPlan && <p className="setup-notice">当前为示例模式。部署时设置 <code>OPENAI_API_KEY</code>，即可启用任意句子的分析、中文翻译、AI 范读与语音转写。</p>}
     </main>
     <footer className="app-footer"><span>englist. <span>少一点复杂，多一点开口。</span></span><span>GENERAL AMERICAN · 每天一句也很好</span></footer>
   </div>;

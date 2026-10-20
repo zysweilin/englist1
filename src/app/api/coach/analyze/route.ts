@@ -2,6 +2,7 @@ import { ANALYSIS_SCHEMA, CoachError, prepareText, validateAnalysis } from "@/li
 import { exampleLesson } from "@/lib/coach/examples";
 import { COACH_PROMPT } from "@/lib/coach/prompt";
 import { boundedRequest, errorResponse, guard, hasCoachKey, openai } from "@/lib/coach/server";
+import { requireLocalChatGPT, usesChatGPTPlan } from "@/lib/coach/chatgpt-policy";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -11,6 +12,11 @@ export async function POST(request: Request) {
     guard(request);
     const body = await (await boundedRequest(request, 12_000)).json();
     const source = prepareText(body?.text);
+    if (usesChatGPTPlan()) {
+      requireLocalChatGPT(request);
+      const { analyzeWithChatGPT } = await import("@/lib/coach/chatgpt");
+      return Response.json(await analyzeWithChatGPT(source, request.signal), { headers: { "Cache-Control": "no-store" } });
+    }
     if (!hasCoachKey()) {
       const example = exampleLesson(source.text);
       if (example) return Response.json(example, { headers: { "Cache-Control": "no-store" } });
