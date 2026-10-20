@@ -38,9 +38,9 @@
 .microphone-button { width: 36px; height: 36px; border: 1px solid var(--line); border-radius: 50%; display: grid; place-items: center; color: #6c7f70; background: #fafbf8; }
 .microphone-button:hover { background: var(--light-green); }
 .character-count { color: #92988e; font: 10px Arial, sans-serif; margin-right: 5px; }
-.primary-button, .listen-button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; border: none; color: white; background: var(--green); font-weight: 500; }
+.primary-button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; border: none; color: white; background: var(--green); font-weight: 500; }
 .primary-button { padding: 12px 19px; border-radius: 7px; font-size: 12px; }
-.primary-button:hover, .listen-button:hover { background: #2c5e4f; }
+.primary-button:hover { background: #2c5e4f; }
 .input-privacy { font-size: 10px; color: #949b92; margin-top: 12px; }
 .review-hint { color: #5e7764; font-size: 12px; padding: 8px 0; }
 .example-row { display: flex; align-items: center; flex-wrap: wrap; gap: 15px; padding: 14px 4px 24px; font-size: 11px; color: #90978e; }
@@ -67,12 +67,12 @@
 .word-selected .word-button { background: #eef3e9; box-shadow: 0 0 0 6px #eef3e9; }
 .word-playing .word-text { background: #e1edda; border-radius: 5px; }
 .stress-mark { font-size: 17px; color: #6f8b65; line-height: 14px; height: 14px; }
-.word-ipa { position: relative; font-family: "Englist IPA", Arial, sans-serif; font-size: 13px; color: #829079; line-height: 1.8; margin-top: 16px; padding-bottom: 10px; white-space: nowrap; }
+.word-ipa { position: relative; font-family: "Englist IPA", Arial, sans-serif; font-size: 23px; font-weight: 500; color: #587264; line-height: 1.8; margin-top: 16px; padding-bottom: 11px; white-space: nowrap; }
 .paper-empty { min-height: 220px; }
 .ipa-stress { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); color: #6f8b65; font-size: 17px; }
-.ipa-link { position: absolute; left: 100%; bottom: 5px; padding-left: 3px; font-size: 22px; line-height: 1; color: #699378; }
-.ipa-symbol { margin-left: 3px; font-size: 10px; }
-.ipa-pause, .ipa-tone { margin-left: 6px; color: #ac946b; }
+.ipa-link { position: absolute; left: 100%; bottom: 4px; padding-left: 3px; font-size: 24px; line-height: 1; color: #699378; }
+.ipa-symbol { margin-left: 4px; font-size: 15px; }
+.ipa-pause, .ipa-tone { margin-left: 7px; color: #ac946b; font-size: 20px; }
 .weak-word .word-text { color: #8a9685; }
 .weak-word .word-ipa { color: #92a18b; }
 .sound-marks { display: flex; justify-content: center; gap: 4px; height: 21px; padding-top: 3px; }
@@ -82,16 +82,12 @@
 .pause-mark { position: absolute; top: 35px; right: -16px; color: #bdac8d; font-size: 18px; }
 .tone-mark { font-family: Georgia, serif; color: #b49b68; font-size: 31px; line-height: 1; padding-top: 25px; margin-left: -7px; }
 .sentence-translation { font-size: 14px; letter-spacing: 1px; color: #8c9185; margin: 17px 0 25px; }
-.sentence-playback { display: flex; justify-content: center; align-items: center; gap: 15px; }
-.listen-button { border-radius: 99px; font-size: 12px; padding: 12px 24px; min-width: 115px; }
-.speed-control { position: relative; }
-.speed-control select { color: #87917f; font-size: 11px; border: 0; background: transparent; padding: 7px 2px; cursor: pointer; }
 .audio-notice { font-size: 9px; color: #8c9585; margin: 13px auto 0; min-height: 14px; }
 .paper-playing::before { background: #397361; box-shadow: 0 0 9px #619f7a; }
-.annotation-key { display: flex; align-items: center; justify-content: center; gap: 19px; flex-wrap: wrap; padding: 20px 22px; border-top: 1px solid #eef0e7; font-size: 10px; }
+.annotation-key { display: flex; align-items: center; justify-content: center; gap: 19px; flex-wrap: wrap; padding: 20px 22px; border-top: 1px solid #eef0e7; font-size: 13px; }
 .key-label { color: #a0a795; font-size: 10px; }
-.key-item { display: inline-flex; align-items: center; gap: 5px; border: 0; background: transparent; padding: 3px 4px; border-radius: 4px; color: #74816d; }
-.key-item b, .stress-key b, .tone-key b { font: 16px "Englist IPA", sans-serif; margin-right: 3px; }
+.key-item { display: inline-flex; align-items: center; gap: 5px; border: 0; background: transparent; padding: 3px 4px; border-radius: 4px; color: #74816d; font-size: 13px; }
+.key-item b, .stress-key b, .tone-key b { font: 21px "Englist IPA", sans-serif; margin-right: 3px; }
 .key-active { background: #eaf0e3; box-shadow: 0 0 0 3px #eaf0e3; }
 .stress-key, .tone-key { color: #7f896f; }
 .kind-linking { color: #638a6c; }.kind-reduction { color: #859575; }
@@ -103,22 +99,22 @@
 .note-label { color: #8a967b; font-size: 9px; letter-spacing: .9px; }
 .coach-note p { color: #617a59; font-size: 12px; line-height: 1.8; margin: 3px 0 0; }
 .all-details { border-top: 1px solid #edf0e5; margin: 0 28px; }
-.all-details summary { font-size: 11px; color: #89927e; padding: 16px 0; list-style: none; cursor: pointer; display: flex; justify-content: space-between; }
+.all-details summary { font-size: 15px; color: #66765f; padding: 19px 0; list-style: none; cursor: pointer; display: flex; justify-content: space-between; }
 .all-details summary::-webkit-details-marker { display: none; }
-.all-details summary > span { display: flex; gap: 18px; font-size: 10px; }
+.all-details summary > span { display: flex; gap: 18px; font-size: 13px; }
 .detail-list { padding-bottom: 15px; }
 .detail-list > div { display: flex; gap: 16px; padding: 12px 0; border-top: 1px dashed #e8ecde; }
-.detail-symbol { width: 38px; flex-shrink: 0; font: 19px "Englist IPA", sans-serif; text-align: center; }
-.detail-list p { color: #78846d; font-size: 12px; line-height: 1.8; }
-.detail-list strong { display: block; color: #52634a; font-weight: 500; margin-bottom: 4px; }
-.detail-list em { font: 12px "Englist IPA", sans-serif; color: #919c84; margin-left: 9px; }
+.detail-symbol { width: 48px; flex-shrink: 0; font: 26px "Englist IPA", sans-serif; text-align: center; }
+.detail-list p { color: #65745e; font-size: 16px; line-height: 1.85; }
+.detail-list strong { display: block; color: #52634a; font-size: 18px; font-weight: 500; margin-bottom: 5px; }
+.detail-list em { font: 17px "Englist IPA", sans-serif; color: #6f866e; margin-left: 9px; }
 .detail-list small, .word-detail small { color: #949e85; display: inline-block; font-size: 9px; margin-left: 8px; border: 1px solid #e2e8d7; border-radius: 3px; padding: 0 4px; }
 .word-detail { margin: 0 28px 20px; padding: 18px; border: 1px solid #e0e8d7; border-radius: 6px; }
 .detail-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .detail-heading h2 { font-weight: 500; font-size: 16px; color: #48613f; }
 .word-detail h2 { font-family: Georgia, "Microsoft YaHei", serif; font-size: 23px; }
 .word-detail h2 span { font: 14px "Englist IPA", sans-serif; color: #8a977e; padding-left: 10px; }
-.word-detail p { margin: 10px 0 0; font-size: 12px; color: #78816e; line-height: 1.9; }
+.word-detail p { margin: 10px 0 0; font-size: 16px; color: #687763; line-height: 1.9; }
 .word-detail p b { font-weight: 500; display: block; color: #58734a; }
 .word-detail b span { margin-left: 9px; font-family: "Englist IPA", sans-serif; }
 .paper-bottom { border-top: 1px solid #edf0e6; padding: 15px 28px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
@@ -168,9 +164,9 @@
   .primary-button { padding: 11px 15px; }.input-privacy { font-size: 9px; line-height: 1.7; }.example-row { gap: 15px; font-size: 10px; padding-bottom: 20px; }
   .paper-heading { padding: 19px 18px; }.paper-options { gap: 10px; }.paper-title { font-size: 9px; }.accent-label { font-size: 9px; }
   .sentence-stage { padding: 19px 12px 22px; }.sentence-line { column-gap: 16px; row-gap: 17px; padding: 0 2px 5px; }
-  .word-text { font-size: 30px; }.word-ipa { font-size: 11px; }.link-arc { top: 57px; width: 26px; right: -22px; }.tone-mark { font-size: 26px; padding-top: 25px; }.sound-tag { font-size: 9px; max-width: 80px; }
+  .word-text { font-size: 30px; }.word-ipa { font-size: 20px; }.link-arc { top: 57px; width: 26px; right: -22px; }.tone-mark { font-size: 26px; padding-top: 25px; }.sound-tag { font-size: 9px; max-width: 80px; }
   .sentence-instruction { font-size: 9px; margin-bottom: 20px; }.sentence-translation { font-size: 13px; margin-top: 17px; }.audio-notice { font-size: 8px; }
-  .annotation-key { gap: 10px 13px; padding: 17px 16px; }.key-label { width: 100%; text-align: center; margin-bottom: 3px; }.key-item { font-size: 9px; }
+  .annotation-key { gap: 10px 13px; padding: 17px 16px; }.key-label { width: 100%; text-align: center; margin-bottom: 3px; }.key-item { font-size: 11px; }.key-item b, .stress-key b, .tone-key b { font-size: 19px; }
   .coach-note { margin: 0 17px 18px; padding: 13px; }.coach-note p { font-size: 11px; }
   .all-details { margin: 0 18px; }.paper-bottom { padding: 12px 18px; align-items: flex-start; }.paper-bottom > span { max-width: 210px; font-size: 8px; }
   .sentence-navigation { gap: 5px; }.your-turn { padding-top: 30px; gap: 10px; }.your-turn h2 { font-size: 18px; }.your-turn p { font-size: 10px; max-width: 170px; line-height: 1.8; }
@@ -179,6 +175,6 @@
   .app-footer { margin: 0 20px; padding: 20px 0; gap: 20px; }.app-footer > span:last-child { display: none; }
 }
 @media print {
-  .app-header, .intro, .input-card, .example-row, .your-turn, .recordings-section, .app-footer, .sentence-playback, .audio-notice, .setup-notice, .paper-options { display: none; }
+  .app-header, .intro, .input-card, .example-row, .your-turn, .recordings-section, .app-footer, .audio-notice, .setup-notice, .paper-options { display: none; }
   .worksheet-main { padding: 0; max-width: none; }.paper { box-shadow: none; break-inside: avoid; }.worksheet-app { background: white; }
 }

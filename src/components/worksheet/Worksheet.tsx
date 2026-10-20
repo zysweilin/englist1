@@ -46,7 +46,6 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
   const [busy, setBusy] = useState<"analyzing" | "transcribing" | null>(null);
   const [error, setError] = useState("");
   const [storageNotice, setStorageNotice] = useState("");
-  const [rate, setRate] = useState(1);
   const [takes, setTakes] = useState<PracticeTake[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [recordMode, setRecordMode] = useState<"dictation" | "practice">("dictation");
@@ -145,7 +144,7 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
       } catch {
         // Device playback does not depend on the AI analysis service.
       }
-      if (shouldPlay) void audio.play(text, rate, true);
+      if (shouldPlay) void audio.play(text, 1, true);
       return;
     }
     setError(""); setBusy("analyzing");
@@ -159,7 +158,7 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
       changeLesson(data);
       setBusy(null);
       resultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      if (shouldPlay) void audio.play(data.sentences[0].text, rate);
+      if (shouldPlay) void audio.play(data.sentences[0].text, 1);
     } catch (failure) {
       if (version !== operationVersion.current) return;
       setBusy(null);
@@ -230,13 +229,13 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
           </div>
           <div className="input-actions"><span className="character-count">{input.length}/{MAX_TEXT_LENGTH}</span>
             {busy ? <button className="primary-button" onClick={cancelOperation}><span className="spinner" />{busy === "analyzing" ? "正在标注 · 取消" : "正在听写 · 取消"}</button>
-              : <button className="primary-button" onClick={() => void analyze(true)} disabled={recording}><Icon name="play" size={16} />标注并播放</button>}
+              : <button className="primary-button" onClick={() => void analyze(true)} disabled={recording}><Icon name="play" size={16} />播放并标注</button>}
           </div>
         </div>
         <p className="input-privacy">语音输入会发送至 AI 转写；下方的「录下我的发音」仅保存在本机。每次最多 60 秒。</p>
       </section>
       <div className="example-row"><span>试一句</span>{EXAMPLE_TEXTS.map((text, index) => <button key={text} disabled={recording || !!busy} onClick={() => chooseExample(text)}>{["日常表达", "点一瓶水", "出门计划"][index]}<Icon name="arrow" size={13} /></button>)}</div>
-      {(error || capture.error) && <div className="error-notice" role="alert"><span>{error || capture.error}</span>{error && input.trim() && <button className="text-button" onClick={() => { stopTakeAudio(); void audio.play(input, rate, true); }} disabled={recording}>先试听原文</button>}</div>}
+      {(error || capture.error) && <div className="error-notice" role="alert"><span>{error || capture.error}</span>{error && input.trim() && <button className="text-button" onClick={() => { stopTakeAudio(); void audio.play(input, 1, true); }} disabled={recording}>先试听原文</button>}</div>}
 
       <article className={`paper ${isPlaying ? "paper-playing" : ""}`} ref={resultRef} aria-label="发音作业纸" aria-busy={busy === "analyzing"}>
         <div className="paper-heading">
@@ -274,17 +273,7 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
             })}
           </div>
           {sentence.translation && <p className="sentence-translation">{sentence.translation}</p>}
-          <div className="sentence-playback">
-            <button className={`listen-button ${isPlaying ? "is-playing" : ""}`} disabled={recording || !!busy}
-              onClick={() => { stopTakeAudio(); if (audio.state !== "idle") audio.stop(); else void audio.play(sentence.text, rate); }}>
-              {audio.state === "loading" ? <span className="spinner" /> : <Icon name={isPlaying ? "stop" : "play"} size={17} />}
-              {audio.state === "loading" ? "准备范读 · 取消" : isPlaying ? "停止播放" : "听一遍"}
-            </button>
-            <label className="speed-control"><span className="sr-only">播放速度</span><select value={rate} onChange={(event) => { audio.stop(); setRate(Number(event.target.value)); }} disabled={recording}>
-              <option value={1}>1× 自然</option><option value={0.75}>0.75× 慢速</option>
-            </select></label>
-          </div>
-          <p className="audio-notice" role="status">{audio.notice || (aiEnabled ? "AI 合成范读 · 点击播放时，所有发音标记保持可见" : "设备合成朗读 · 示例无需配置即可体验")}</p>
+          {audio.notice && <p className="audio-notice" role="status">{audio.notice}</p>}
         </div>
 
         {annotated && <><div className="annotation-key">
@@ -302,7 +291,7 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
           <div className="detail-heading"><h2>{sentence.words[selectedWord].text} <span>/{markedIpa(sentence, selectedWord)}/</span></h2><button className="quiet-button" onClick={() => setSelectedWord(null)} aria-label="收起单词说明"><Icon name="close" size={17} /></button></div>
           {features.length ? features.map((feature, i) => <p key={i}><b>{FEATURE_INFO[feature.kind].label} <span>{feature.notation}</span></b>{feature.explanation}{feature.optional && <small>一种自然读法</small>}</p>) : <p>{sentence.words[selectedWord].stress ? "这个词承载句子的重点，元音稍长、声音更清楚。" : "顺着整句的节奏读，不需要刻意改变这个词的声音。"}</p>}
         </section>}
-        <details className="all-details" open={activeKind !== null || undefined}>
+        <details className="all-details" open>
           <summary>查看{activeKind ? FEATURE_INFO[activeKind].label : selectedWord !== null ? "这个词的" : "全部发音"}细节 <span>{features.length} 处 <span aria-hidden="true">＋</span></span></summary>
           <div className="detail-list">{features.map((feature, index) => <div key={index}><span className={`detail-symbol kind-${feature.kind}`}>{FEATURE_INFO[feature.kind].symbol}</span><p><strong>{sentence.words.slice(feature.from, feature.to + 1).map((word) => word.text).join(" ")} <em>{feature.notation}</em></strong>{feature.explanation}{feature.optional && <small>自然语速下可选</small>}</p></div>)}
             <div><span className="detail-symbol">{toneSymbol[sentence.tone]}</span><p><strong>语调与重音</strong>{sentence.toneTip}</p></div>
