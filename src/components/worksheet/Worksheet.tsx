@@ -135,19 +135,10 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
     operation.current = controller;
     const text = input.trim();
     changeLesson(textLesson(text));
-    if (!aiEnabled) {
-      setError("");
-      setBusy(null);
-      try {
-        const example = exampleLesson(text);
-        if (example) changeLesson(example);
-      } catch {
-        // Device playback does not depend on the AI analysis service.
-      }
-      if (shouldPlay) void audio.play(text, 1, true);
-      return;
-    }
     setError(""); setBusy("analyzing");
+    // Start device playback immediately when server-side AI audio is unavailable,
+    // while still asking the analysis endpoint for IPA and connected-speech marks.
+    if (shouldPlay && !aiEnabled) void audio.play(text, 1, true);
     try {
       const response = await fetch("/api/coach/analyze", {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }), signal: controller.signal,
@@ -158,11 +149,18 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
       changeLesson(data);
       setBusy(null);
       resultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      if (shouldPlay) void audio.play(data.sentences[0].text, 1);
+      if (shouldPlay && aiEnabled) void audio.play(data.sentences[0].text, 1);
     } catch (failure) {
       if (version !== operationVersion.current) return;
       setBusy(null);
-      setError(failure instanceof Error ? failure.message : "分析失败，请重试。");
+      try {
+        const example = exampleLesson(text);
+        if (example) changeLesson(example);
+      } catch {
+        // Keep the submitted words and immediate device playback available.
+      }
+      if (aiEnabled) setError(failure instanceof Error ? failure.message : "分析失败，请重试。");
+      if (shouldPlay && aiEnabled) void audio.play(text, 1, true);
     }
   }
   async function toggleRecording(purpose: PracticeTake["purpose"]) {
