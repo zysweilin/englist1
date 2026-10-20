@@ -64,6 +64,13 @@ export async function openai(path: string, body: object | FormData, signal?: Abo
   });
   if (!response.ok) {
     // Do not expose provider responses, credentials or user text in logs.
+    if (response.status === 429) {
+      const failure = await response.json().catch(() => null);
+      const code = failure?.error?.code;
+      if (code === "credit_balance_exhausted" || code === "insufficient_quota" || failure?.error?.type === "insufficient_quota") {
+        throw new CoachError("AI 服务的 API 额度已用完，请在 OpenAI 平台补充额度后重试。", 503);
+      }
+    }
     throw new CoachError(response.status === 429 ? "AI 服务暂时繁忙，请稍后再试。" : "AI 服务暂时无法完成请求，请稍后重试或检查部署配置。", 502);
   }
   return response;

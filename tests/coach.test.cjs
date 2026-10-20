@@ -123,6 +123,21 @@ test("speech passes exact text and streams audio; provider failures do not leak 
     assert.doesNotMatch(await failure.text(), /test-secret/);
   } finally { global.fetch = originalFetch; delete process.env.OPENAI_API_KEY; }
 });
+test("exhausted API credits are distinguished from temporary rate limits without leaking provider data", async () => {
+  const originalFetch = global.fetch;
+  process.env.OPENAI_API_KEY = "test-only-never-network";
+  try {
+    for (const code of ["credit_balance_exhausted", "insufficient_quota", "rate_limit_exceeded"]) {
+      global.fetch = async () => Response.json({ error: { code, message: "private-provider-details" } }, { status: 429 });
+      const response = await analyze(jsonRequest("analyze", { text: "she's one of my best friends" }));
+      const data = await response.json();
+      const exhausted = code !== "rate_limit_exceeded";
+      assert.equal(response.status, exhausted ? 503 : 502);
+      assert.match(data.error, exhausted ? /额度已用完/ : /繁忙/);
+      assert.doesNotMatch(data.error, /private-provider-details/);
+    }
+  } finally { global.fetch = originalFetch; delete process.env.OPENAI_API_KEY; }
+});
 test("transcription validates audio format and size and explicitly does not assess pronunciation", async () => {
   const originalFetch = global.fetch;
   process.env.OPENAI_API_KEY = "test-only";
