@@ -39,7 +39,7 @@ export type Lesson = {
   version: 1;
   sourceText: string;
   accent: "en-US";
-  source: "ai" | "example";
+  source: "ai" | "example" | "text";
   sentences: CoachSentence[];
 };
 

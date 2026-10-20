@@ -67,7 +67,12 @@
 .word-selected .word-button { background: #eef3e9; box-shadow: 0 0 0 6px #eef3e9; }
 .word-playing .word-text { background: #e1edda; border-radius: 5px; }
 .stress-mark { font-size: 17px; color: #6f8b65; line-height: 14px; height: 14px; }
-.word-ipa { font-family: "Englist IPA", Arial, sans-serif; font-size: 13px; color: #829079; line-height: 1.8; padding-top: 8px; white-space: nowrap; }
+.word-ipa { position: relative; font-family: "Englist IPA", Arial, sans-serif; font-size: 13px; color: #829079; line-height: 1.8; margin-top: 16px; padding-bottom: 10px; white-space: nowrap; }
+.paper-empty { min-height: 220px; }
+.ipa-stress { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); color: #6f8b65; font-size: 17px; }
+.ipa-link { position: absolute; left: 100%; bottom: 5px; padding-left: 3px; font-size: 22px; line-height: 1; color: #699378; }
+.ipa-symbol { margin-left: 3px; font-size: 10px; }
+.ipa-pause, .ipa-tone { margin-left: 6px; color: #ac946b; }
 .weak-word .word-text { color: #8a9685; }
 .weak-word .word-ipa { color: #92a18b; }
 .sound-marks { display: flex; justify-content: center; gap: 4px; height: 21px; padding-top: 3px; }

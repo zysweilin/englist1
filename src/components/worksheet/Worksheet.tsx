@@ -3,12 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { FEATURE_INFO, MAX_TEXT_LENGTH, type CoachSentence, type FeatureKind, type Lesson } from "@/lib/coach/contracts";
 import { EXAMPLE_TEXTS, exampleLesson } from "@/lib/coach/examples";
+import { markedIpa, textLesson } from "@/lib/coach/display";
 import { audioExtension, deleteTake, loadTakes, saveTake, type PracticeTake } from "@/lib/coach/recordings";
 import { useLessonAudio } from "@/hooks/useLessonAudio";
 import { useCapture, type Capture } from "@/hooks/useCapture";
 import { Icon } from "./Icons";
 
-const initialLesson = exampleLesson()!;
 const toneSymbol = { fall: "↘", rise: "↗", "fall-rise": "↘↗" };
 
 function TakePlayer({ take, onDelete, onPlay }: { take: PracticeTake; onDelete: () => void; onPlay: (element: HTMLAudioElement) => void }) {
@@ -37,7 +37,7 @@ function TakePlayer({ take, onDelete, onPlay }: { take: PracticeTake; onDelete: 
 
 export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
   const [input, setInput] = useState("");
-  const [lesson, setLesson] = useState<Lesson>(initialLesson);
+  const [lesson, setLesson] = useState<Lesson | null>(null);
   const [sentenceIndex, setSentenceIndex] = useState(0);
   const [selectedWord, setSelectedWord] = useState<number | null>(null);
   const [activeKind, setActiveKind] = useState<FeatureKind | null>(null);
@@ -51,7 +51,8 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
   const [showHistory, setShowHistory] = useState(false);
   const [recordMode, setRecordMode] = useState<"dictation" | "practice">("dictation");
   const [transcriptReview, setTranscriptReview] = useState(false);
-  const sentence = lesson.sentences[sentenceIndex];
+  const sentence = lesson?.sentences[sentenceIndex];
+  const annotated = !!lesson && lesson.source !== "text";
   const audio = useLessonAudio(aiEnabled);
   const operation = useRef<AbortController | null>(null);
   const operationVersion = useRef(0);
@@ -109,6 +110,7 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
       if (!response.ok) throw new Error(data.error || "语音识别失败，请重试。");
       if (version !== operationVersion.current) return;
       setInput(data.text);
+      setLesson(null);
       setTranscriptReview(true);
       await persist({ ...take, transcript: data.text });
       inputRef.current?.focus();
@@ -133,6 +135,7 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
     const controller = new AbortController();
     operation.current = controller;
     const text = input.trim();
+    changeLesson(textLesson(text));
     if (!aiEnabled) {
       setError("");
       setBusy(null);
@@ -164,11 +167,12 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
     }
   }
   async function toggleRecording(purpose: PracticeTake["purpose"]) {
+    if (purpose === "practice" && !sentence) return;
     if (capture.state === "recording") { capture.stop(); return; }
     if (capture.state === "requesting") { capture.cancel(); return; }
     cancelOperation(); stopTakeAudio(); setError("");
     setRecordMode(purpose);
-    recordingContext.current = { purpose, reference: purpose === "practice" ? structuredClone(sentence) : null };
+    recordingContext.current = { purpose, reference: purpose === "practice" && sentence ? structuredClone(sentence) : null };
     await capture.start();
   }
   function moveSentence(delta: number) {
@@ -178,16 +182,16 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
   function chooseExample(text: string) {
     cancelOperation(); stopTakeAudio();
     setInput(text); setError("");
-    changeLesson(exampleLesson(text)!);
+    setLesson(null);
   }
   async function removeTake(id: string) {
     try { await deleteTake(id); setTakes((current) => current.filter((take) => take.id !== id)); }
     catch { setStorageNotice("暂时无法删除本机录音，请重试。"); }
   }
-  const features = sentence.features.filter((feature) =>
+  const features = (sentence?.features ?? []).filter((feature) =>
     (selectedWord === null || selectedWord >= feature.from && selectedWord <= feature.to) &&
     (!activeKind || feature.kind === activeKind));
-  const kinds = [...new Set(sentence.features.map((feature) => feature.kind))];
+  const kinds = [...new Set((sentence?.features ?? []).map((feature) => feature.kind))];
   const isPlaying = audio.state === "playing";
   const latestTake = takes[0];
   function playTake(element: HTMLAudioElement) {
@@ -213,7 +217,7 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
         <textarea ref={inputRef} id="practice-input" value={input} maxLength={MAX_TEXT_LENGTH} rows={2}
           placeholder="Type a sentence, or just say it…"
           disabled={busy === "transcribing" || recording}
-          onChange={(event) => { cancelOperation(); setInput(event.target.value); setError(""); setTranscriptReview(false); }}
+          onChange={(event) => { cancelOperation(); setInput(event.target.value); setLesson(null); setSelectedWord(null); setError(""); setTranscriptReview(false); }}
           onKeyDown={(event) => { if ((event.ctrlKey || event.metaKey) && event.key === "Enter" && !busy && !recording) { event.preventDefault(); void analyze(true); } }}
         />
         {transcriptReview && <p className="review-hint">听写已填入上方。先确认文字，再点「标注并播放」。语音识别不代表发音评分。</p>}
@@ -236,13 +240,14 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
 
       <article className={`paper ${isPlaying ? "paper-playing" : ""}`} ref={resultRef} aria-label="发音作业纸" aria-busy={busy === "analyzing"}>
         <div className="paper-heading">
-          <span className="paper-title">PRACTICE <span>/</span> {String(sentenceIndex + 1).padStart(2, "0")}</span>
-          <div className="paper-options"><span className="accent-label"><span />美式自然读法</span>
+          <span className="paper-title">PRACTICE{sentence && <> <span>/</span> {String(sentenceIndex + 1).padStart(2, "0")}</>}</span>
+          {sentence && <div className="paper-options"><span className="accent-label"><span />美式自然读法</span>
             <button className={`ipa-toggle ${showIpa ? "selected" : ""}`} onClick={() => setShowIpa(!showIpa)} aria-pressed={showIpa}>音标</button>
-          </div>
+          </div>}
         </div>
+        {sentence && lesson ? <>
         <div className="sentence-stage">
-          <p className="sentence-instruction">点一个词，听懂它为什么这样读</p>
+          {annotated && <p className="sentence-instruction">点一个词，听懂它为什么这样读</p>}
           <div className="sentence-line" lang="en" aria-label={sentence.text}>
             {sentence.words.map((word, index) => {
               const marks = sentence.features.filter((feature) => index >= feature.from && index <= feature.to);
@@ -252,21 +257,23 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
               const pause = outgoing.some((feature) => feature.kind === "pause");
               const focused = !activeKind || marks.some((feature) => feature.kind === activeKind);
               const activeWord = audio.wordPosition !== null && audio.wordPosition >= word.start && audio.wordPosition < word.end;
-              const soundMarks = outgoing.filter((feature) => !["linking", "reduction", "pause"].includes(feature.kind));
+              const soundMarks = outgoing.filter((feature) => ["assimilation", "glide"].includes(feature.kind));
               return <span className={`word-cell ${weak ? "weak-word" : ""} ${selectedWord === index ? "word-selected" : ""} ${activeWord ? "word-playing" : ""} ${focused ? "" : "word-muted"}`} key={`${sentence.id}-${index}`}>
                 <button className="word-button" onClick={() => setSelectedWord(selectedWord === index ? null : index)} aria-pressed={selectedWord === index} aria-label={`${word.text}${word.stress ? "，重读" : ""}${weak ? "，弱读" : ""}，查看发音细节`}>
-                  <span className="stress-mark" aria-hidden="true">{word.stress ? "•" : "\u00a0"}</span>
                   <span className="word-text">{word.text}</span>
-                  {showIpa && <span className="word-ipa">/{word.ipa}/</span>}
-                  <span className="sound-marks">{soundMarks.map((mark) => <span key={mark.kind} className={`sound-tag kind-${mark.kind}`} title={mark.explanation}>{mark.kind === "elision" ? mark.notation : mark.kind === "unreleased" ? mark.notation : FEATURE_INFO[mark.kind].symbol}</span>)}</span>
+                  {showIpa && word.ipa && <span className="word-ipa">
+                    {word.stress && <span className="ipa-stress" aria-label="重读">•</span>}
+                    /{markedIpa(sentence, index)}/
+                    {soundMarks.map((mark) => <sup key={mark.kind} className={`ipa-symbol kind-${mark.kind}`} title={mark.explanation}>{mark.kind === "assimilation" ? mark.notation : FEATURE_INFO[mark.kind].symbol}</sup>)}
+                    {link && <span className="ipa-link" aria-label="与下一个音标衔接">‿</span>}
+                    {pause && <span className="ipa-pause" aria-label="稍停"> |</span>}
+                    {index === sentence.words.length - 1 && <span className="ipa-tone" title={sentence.toneTip}>{toneSymbol[sentence.tone]}</span>}
+                  </span>}
                 </button>
-                {link && <span className="link-arc" aria-label="与下一个词衔接" />}
-                {pause && <span className="pause-mark" aria-label="稍停">|</span>}
               </span>;
             })}
-            <span className="tone-mark" title={sentence.toneTip} aria-label={sentence.toneTip}>{toneSymbol[sentence.tone]}</span>
           </div>
-          <p className="sentence-translation">{sentence.translation}</p>
+          {sentence.translation && <p className="sentence-translation">{sentence.translation}</p>}
           <div className="sentence-playback">
             <button className={`listen-button ${isPlaying ? "is-playing" : ""}`} disabled={recording || !!busy}
               onClick={() => { stopTakeAudio(); if (audio.state !== "idle") audio.stop(); else void audio.play(sentence.text, rate); }}>
@@ -280,7 +287,7 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
           <p className="audio-notice" role="status">{audio.notice || (aiEnabled ? "AI 合成范读 · 点击播放时，所有发音标记保持可见" : "设备合成朗读 · 示例无需配置即可体验")}</p>
         </div>
 
-        <div className="annotation-key">
+        {annotated && <><div className="annotation-key">
           <span className="key-label">这一句的记号</span>
           <span className="stress-key"><b>•</b> 重读</span>
           {kinds.map((kind) => <button key={kind} className={`key-item kind-${kind} ${activeKind === kind ? "key-active" : ""}`} aria-pressed={activeKind === kind} onClick={() => { setActiveKind(activeKind === kind ? null : kind); setSelectedWord(null); }}>
@@ -292,7 +299,7 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
           <span className="note-icon">✳</span><div><span className="note-label">只记住这一点</span><p>{sentence.focus}</p></div>
         </div>
         {selectedWord !== null && <section className="word-detail" aria-live="polite">
-          <div className="detail-heading"><h2>{sentence.words[selectedWord].text} <span>/{sentence.words[selectedWord].ipa}/</span></h2><button className="quiet-button" onClick={() => setSelectedWord(null)} aria-label="收起单词说明"><Icon name="close" size={17} /></button></div>
+          <div className="detail-heading"><h2>{sentence.words[selectedWord].text} <span>/{markedIpa(sentence, selectedWord)}/</span></h2><button className="quiet-button" onClick={() => setSelectedWord(null)} aria-label="收起单词说明"><Icon name="close" size={17} /></button></div>
           {features.length ? features.map((feature, i) => <p key={i}><b>{FEATURE_INFO[feature.kind].label} <span>{feature.notation}</span></b>{feature.explanation}{feature.optional && <small>一种自然读法</small>}</p>) : <p>{sentence.words[selectedWord].stress ? "这个词承载句子的重点，元音稍长、声音更清楚。" : "顺着整句的节奏读，不需要刻意改变这个词的声音。"}</p>}
         </section>}
         <details className="all-details" open={activeKind !== null || undefined}>
@@ -300,15 +307,16 @@ export function Worksheet({ aiEnabled }: { aiEnabled: boolean }) {
           <div className="detail-list">{features.map((feature, index) => <div key={index}><span className={`detail-symbol kind-${feature.kind}`}>{FEATURE_INFO[feature.kind].symbol}</span><p><strong>{sentence.words.slice(feature.from, feature.to + 1).map((word) => word.text).join(" ")} <em>{feature.notation}</em></strong>{feature.explanation}{feature.optional && <small>自然语速下可选</small>}</p></div>)}
             <div><span className="detail-symbol">{toneSymbol[sentence.tone]}</span><p><strong>语调与重音</strong>{sentence.toneTip}</p></div>
           </div>
-        </details>
-        <div className="paper-bottom"><span>{lesson.source === "example" ? "教学示例" : "AI 语境分析"} <span>·</span> 标注是一种建议读法，会随语境和语速变化</span>
+        </details></>}
+        <div className="paper-bottom"><span>{annotated && <>{lesson.source === "example" ? "教学示例" : "AI 语境分析"} <span>·</span> 标注是一种建议读法，会随语境和语速变化</>}</span>
           <div className="sentence-navigation"><button className="quiet-button" disabled={sentenceIndex === 0 || recording || !!busy} onClick={() => moveSentence(-1)} aria-label="上一句"><Icon name="chevron" size={16} style={{ transform: "rotate(180deg)" }} /></button><span>{sentenceIndex + 1} / {lesson.sentences.length}</span><button className="quiet-button" disabled={sentenceIndex === lesson.sentences.length - 1 || recording || !!busy} onClick={() => moveSentence(1)} aria-label="下一句"><Icon name="chevron" size={16} /></button></div>
         </div>
+        </> : <div className="paper-empty" />}
       </article>
 
       <section className="your-turn" aria-label="录下自己的发音">
         <div><div className="eyebrow">NOW, YOUR TURN</div><h2>听过了，换你说。</h2><p>照着这句读一遍，回听自己的连读和节奏。</p></div>
-        <button className={`record-button ${recording && recordMode === "practice" ? "recording" : ""}`} onClick={() => void toggleRecording("practice")} disabled={!!busy || recording && recordMode !== "practice"}>
+        <button className={`record-button ${recording && recordMode === "practice" ? "recording" : ""}`} onClick={() => void toggleRecording("practice")} disabled={!sentence || !!busy || recording && recordMode !== "practice"}>
           <Icon name={recording && recordMode === "practice" ? "stop" : "mic"} size={18} />
           {recording && recordMode === "practice" ? capture.state === "requesting" ? "等待权限 · 取消" : `结束录音 · ${Math.floor(capture.elapsed / 1000)}s` : "录下我的发音"}
         </button>
